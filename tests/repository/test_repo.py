@@ -42,7 +42,13 @@ class TestP2PBinanceApi:
             await p2p_api.search(EXAMPLE_SEARCH_API_ARG)
 
 
-EXAMPLE_P2PRepo_FIND = P2POrder(
+EXAMPLE_P2PRepo_FIND_FILTER = P2PFilter(
+    source_currency=FiatCurrency.RUB,
+    target_currency=CryptoCurrency.USDT,
+    min_amount=0,
+    payments=[RuPayment.TinkoffNew],
+)
+EXAMPLE_P2PRepo_FIND_RETURN = P2POrder(
     source_currency=FiatCurrency.RUB,
     target_currency=CryptoCurrency.USDT,
     price=61.82,
@@ -64,13 +70,7 @@ class TestP2PBinanceRepository:
 
     async def test_find(self, p2p_binance_api):
         repo = P2PBinanceRepository(p2p_binance_api)
-        filter = P2PFilter(
-            source_currency=FiatCurrency.RUB,
-            target_currency=CryptoCurrency.USDT,
-            min_amount=0,
-            payments=[RuPayment.TinkoffNew],
-        )
-        result = await repo.find(filter)
-        assert result[0].dict(exclude={"datetime"}) == EXAMPLE_P2PRepo_FIND.dict(
+        result = await repo.find(EXAMPLE_P2PRepo_FIND_FILTER)
+        assert result[0].dict(exclude={"datetime"}) == EXAMPLE_P2PRepo_FIND_RETURN.dict(
             exclude={"datetime"}
         )
