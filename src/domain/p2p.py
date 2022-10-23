@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, NonNegativeFloat, root_validator
+from pydantic import BaseModel, NonNegativeFloat, root_validator, Field
 
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                P2PTradeType, Payments)
@@ -8,7 +8,7 @@ from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
 AnyCurrency = FiatCurrency | CryptoCurrency
 
 
-class P2PSameCurrencyError(Exception):
+class P2PSameCurrencyTypeError(Exception):
     ...
 
 
@@ -30,7 +30,7 @@ class P2POrder(BaseModel):
         source_currency = values["source_currency"]
         target_currency = values["target_currency"]
         if type(source_currency) == type(target_currency):
-            raise P2PSameCurrencyError(
+            raise P2PSameCurrencyTypeError(
                 "source currency and target currency should be different type"
             )
         return values
@@ -54,4 +54,14 @@ class P2PFilter(BaseModel):
     source_currency: AnyCurrency
     target_currency: AnyCurrency
     min_amount: NonNegativeFloat
-    payments: list[Payments]
+    payments: list[Payments] = Field(unique_items=True)
+
+    @root_validator
+    def check_different_currencies_type(cls, values):
+        source_currency = values["source_currency"]
+        target_currency = values["target_currency"]
+        if type(source_currency) == type(target_currency):
+            raise P2PSameCurrencyTypeError(
+                "source currency and target currency should be different type"
+            )
+        return values
