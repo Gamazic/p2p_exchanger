@@ -1,8 +1,15 @@
+from typing import Protocol
+
 from src.domain.p2p import P2PFilter, P2POrder
 from src.repository.p2p_binance_repo import IP2PRepo
 
 
-class P2PExhcnagerService:
+class IExchanger(Protocol):
+    async def find_best_price(self, filter):
+        raise NotImplementedError()
+
+
+class P2PExhcnagerService(IExchanger):
     def __init__(self, p2p_repo: IP2PRepo):
         self.__p2p_repo = p2p_repo
 

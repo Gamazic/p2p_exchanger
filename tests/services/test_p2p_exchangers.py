@@ -1,6 +1,6 @@
 import pytest
 
-from src.services.p2p_exchangers import P2PExhcnagerService
+from src.services.exchangers import P2PExhcnagerService
 from tests.repository.test_repo import (EXAMPLE_P2PRepo_FIND_FILTER,  # type: ignore
                                         EXAMPLE_P2PRepo_FIND_RETURN)
 
