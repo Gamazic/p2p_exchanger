@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, NonNegativeFloat, root_validator
 
-from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               P2PTradeType, Payments)
+from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
+                                               FiatCurrency, P2PTradeType)
 
 AnyCurrency = FiatCurrency | CryptoCurrency
 
@@ -22,7 +22,7 @@ class P2POrder(BaseModel):
     price: NonNegativeFloat
     amount: NonNegativeFloat
     trade_type: P2PTradeType
-    payments: list[Payments]
+    payments: list[AnyPayment]
     datetime: datetime
 
     @root_validator
@@ -54,7 +54,7 @@ class P2PFilter(BaseModel):
     source_currency: AnyCurrency
     target_currency: AnyCurrency
     min_amount: NonNegativeFloat
-    payments: list[Payments] = Field(unique_items=True)
+    payments: list[AnyPayment] = Field(unique_items=True)
 
     @root_validator
     def check_different_currencies_type(cls, values):
@@ -68,8 +68,6 @@ class P2PFilter(BaseModel):
 
     @root_validator
     def check_payments_match_currency(cls, values):
-        source_currency = values["source_currency"]
-        payments = values["payments"]
-        for payment in payments:
-            payment.validate_currency(source_currency)
+        for payment in values["payments"]:
+            payment.validate_currency(values["source_currency"])
         return values

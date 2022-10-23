@@ -77,7 +77,7 @@ class KztPayment(PaymentBase):
             raise PaymentDoesntMatchCurrencyError
 
 
-Payments = RuPayment | KztPayment
+AnyPayment = RuPayment | KztPayment
 
 
 class P2PTradeType(StrEnum):
@@ -98,14 +98,14 @@ class SearchApiParams(CamelModel):
     rows: PositiveInt = 10
     page: PositiveInt = 1
     publisher_type: Literal["merchant"] | None = None
-    pay_types: list[Payments] = Field(default_factory=list)
+    pay_types: list[AnyPayment] = Field(default_factory=list)
     countries: list[Country] = Field(default_factory=list)
     trans_amount: NonNegativeFloat | None = None
     pro_merchant_ads: bool | None = None
 
 
 class TradeMethod(CamelModel):
-    identifier: Payments
+    identifier: AnyPayment
 
 
 class AdvSearchApi(CamelModel):
