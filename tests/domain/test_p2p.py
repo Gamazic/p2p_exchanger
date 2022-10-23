@@ -8,6 +8,17 @@ from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
 
 
 class TestP2POrder:
+    def test_correct_order(self):
+        P2POrder(
+            source_currency=FiatCurrency.RUB,
+            target_currency=CryptoCurrency.BTC,
+            price=0,
+            amount=0,
+            trade_type=P2PTradeType.BUY,
+            payments=[],
+            datetime=datetime.now(),
+        )
+
     def test_same_currency(self):
         with pytest.raises(P2PSameCurrencyTypeError):
             P2POrder(
@@ -54,6 +65,14 @@ class TestP2POrder:
 
 
 class TestP2PFilter:
+    def test_correct_filter(self):
+        P2PFilter(
+            source_currency=FiatCurrency.RUB,
+            target_currency=CryptoCurrency.BTC,
+            min_amount=0,
+            payments=[]
+        )
+
     def test_currencies(self):
         with pytest.raises(P2PSameCurrencyTypeError):
             P2PFilter(
