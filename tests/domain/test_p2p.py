@@ -2,9 +2,12 @@ from datetime import datetime
 
 import pytest
 
-from src.domain.p2p import P2POrder, P2PSameCurrencyTypeError, P2PTradeTypeError, P2PFilter
+from src.domain.p2p import (P2PFilter, P2POrder, P2PSameCurrencyTypeError,
+                            P2PTradeTypeError)
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               P2PTradeType, PaymentDoesntMatchCurrencyError, RuPayment, KztPayment)
+                                               KztPayment, P2PTradeType,
+                                               PaymentDoesntMatchCurrencyError,
+                                               RuPayment)
 
 
 class TestP2POrder:
@@ -70,7 +73,7 @@ class TestP2PFilter:
             source_currency=FiatCurrency.RUB,
             target_currency=CryptoCurrency.BTC,
             min_amount=0,
-            payments=[]
+            payments=[],
         )
 
     def test_currencies(self):
@@ -79,7 +82,7 @@ class TestP2PFilter:
                 source_currency=FiatCurrency.RUB,
                 target_currency=FiatCurrency.KZT,
                 min_amount=0,
-                payments=[]
+                payments=[],
             )
 
     def test_payments(self):
@@ -88,11 +91,11 @@ class TestP2PFilter:
                 source_currency=FiatCurrency.RUB,
                 target_currency=CryptoCurrency.USDT,
                 min_amount=0,
-                payments=[KztPayment.KaspiBank]
+                payments=[KztPayment.KaspiBank],
             )
         P2PFilter(
             source_currency=FiatCurrency.RUB,
             target_currency=CryptoCurrency.USDT,
             min_amount=0,
-            payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank]
+            payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
         )

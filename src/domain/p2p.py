@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, NonNegativeFloat, root_validator, Field
+from pydantic import BaseModel, Field, NonNegativeFloat, root_validator
 
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                P2PTradeType, Payments)
