@@ -79,6 +79,7 @@ class KztPayment(PaymentBase):
 
 Payments = RuPayment | KztPayment
 
+
 class P2PTradeType(StrEnum):
     BUY = auto()
     SELL = auto()
@@ -103,10 +104,15 @@ class SearchApiParams(CamelModel):
     pro_merchant_ads: bool | None = None
 
 
+class TradeMethod(CamelModel):
+    identifier: Payments
+
+
 class AdvSearchApi(CamelModel):
-    maxSingleTransAmount: NonNegativeFloat
-    minSingleTransAmount: NonNegativeFloat
+    max_single_trans_amount: NonNegativeFloat
+    min_single_trans_amount: NonNegativeFloat
     price: NonNegativeFloat
+    trade_methods: list[TradeMethod]
 
 
 class AdvertiserSearchApi(CamelModel):
