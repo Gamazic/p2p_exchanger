@@ -68,6 +68,13 @@ class P2PFilter(BaseModel):
 
     @root_validator
     def check_payments_match_currency(cls, values):
-        for payment in values["payments"]:
-            payment.validate_currency(values["source_currency"])
+        source_currency = values["source_currency"]
+        target_currency = values["target_currency"]
+        payments = values["payments"]
+        if source_currency in FiatCurrency:
+            for payment in payments:
+                payment.validate_currency(source_currency)
+        else:
+            for payment in payments:
+                payment.validate_currency(target_currency)
         return values

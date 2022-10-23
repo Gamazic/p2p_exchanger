@@ -99,3 +99,9 @@ class TestP2PFilter:
             min_amount=0,
             payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
         )
+        P2PFilter(
+            source_currency=CryptoCurrency.USDT,
+            target_currency=FiatCurrency.KZT,
+            min_amount=0,
+            payments=[KztPayment.KaspiBank],
+        )
