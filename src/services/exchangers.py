@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from src.domain.fiat import FiatFixedCryptoFilter, FiatOrder
 from src.domain.p2p import P2PFilter, P2POrder
 from src.repository.p2p_binance_repo import IP2PRepo
 
@@ -18,3 +19,37 @@ class P2PExhcnagerService(IExchanger):
         return max(
             orders, key=lambda o: o.price
         )  # TODO if orders are ordered, than take just first el
+
+
+class FiatFixedCryptoExchangerService(IExchanger):
+    def __init__(self, p2p_exchanger: P2PExhcnagerService):
+        self.__p2p_exchanger = p2p_exchanger
+
+    async def find_best_price(self, filter: FiatFixedCryptoFilter) -> FiatOrder:
+        source_order = await self.__get_source_order(filter)
+        target_order = await self.__get_target_order(filter)
+        price = target_order.price / source_order.price
+        fiat_order = FiatOrder(
+            source_order=source_order,
+            target_order=target_order,
+            price=price,
+        )
+        return fiat_order
+
+    async def __get_source_order(self, filter: FiatFixedCryptoFilter) -> P2POrder:
+        source_p2p_filter = P2PFilter(
+            source_currency=filter.source_params.currency,
+            target_currency=filter.intermediate_crypto,
+            min_amount=filter.source_params.min_amount,
+            payments=list(filter.source_params.payments),
+        )
+        return await self.__p2p_exchanger.find_best_price(source_p2p_filter)
+
+    async def __get_target_order(self, filter: FiatFixedCryptoFilter) -> P2POrder:
+        target_p2p_filter = P2PFilter(
+            source_currency=filter.intermediate_crypto,
+            target_currency=filter.target_params.currency,
+            min_amount=filter.target_params.min_amount,
+            payments=list(filter.target_params.payments),
+        )
+        return await self.__p2p_exchanger.find_best_price(target_p2p_filter)
