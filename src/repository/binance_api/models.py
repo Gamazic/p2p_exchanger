@@ -7,19 +7,6 @@ from pydantic import (BaseModel, Field, NonNegativeFloat, NonNegativeInt,
                       PositiveInt)
 
 
-class RuPayment(StrEnum):
-    TinkoffNew = auto()
-    RosBankNew = auto()
-    RaiffeisenBank = auto()
-
-
-class KztPayment(StrEnum):
-    KaspiBank = auto()
-
-
-Payments = RuPayment | KztPayment
-
-
 class Country(StrEnum):
     Russia = auto()
 
@@ -37,6 +24,38 @@ class CryptoCurrency(StrEnum):
     ETH = auto()
     SHIB = auto()
 
+
+class PaymentDoesntMatchCurrencyError(Exception):
+    ...
+
+
+class PaymentBase(StrEnum):
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        raise NotImplementedError()
+
+
+class RuPayment(PaymentBase):
+    TinkoffNew = auto()
+    RosBankNew = auto()
+    RaiffeisenBank = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.RUB:
+            raise PaymentDoesntMatchCurrencyError
+
+
+class KztPayment(PaymentBase):
+    KaspiBank = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.KZT:
+            raise PaymentDoesntMatchCurrencyError
+
+
+Payments = RuPayment | KztPayment
 
 class P2PTradeType(StrEnum):
     BUY = auto()

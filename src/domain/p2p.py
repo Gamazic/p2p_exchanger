@@ -65,3 +65,11 @@ class P2PFilter(BaseModel):
                 "source currency and target currency should be different type"
             )
         return values
+
+    @root_validator
+    def check_payments_match_currency(cls, values):
+        source_currency = values["source_currency"]
+        payments = values["payments"]
+        for payment in payments:
+            payment.validate_currency(source_currency)
+        return values

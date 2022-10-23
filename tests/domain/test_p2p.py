@@ -4,7 +4,7 @@ import pytest
 
 from src.domain.p2p import P2POrder, P2PSameCurrencyTypeError, P2PTradeTypeError, P2PFilter
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               P2PTradeType)
+                                               P2PTradeType, PaymentDoesntMatchCurrencyError, RuPayment, KztPayment)
 
 
 class TestP2POrder:
@@ -81,3 +81,18 @@ class TestP2PFilter:
                 min_amount=0,
                 payments=[]
             )
+
+    def test_payments(self):
+        with pytest.raises(PaymentDoesntMatchCurrencyError):
+            P2PFilter(
+                source_currency=FiatCurrency.RUB,
+                target_currency=CryptoCurrency.USDT,
+                min_amount=0,
+                payments=[KztPayment.KaspiBank]
+            )
+        P2PFilter(
+            source_currency=FiatCurrency.RUB,
+            target_currency=CryptoCurrency.USDT,
+            min_amount=0,
+            payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank]
+        )
