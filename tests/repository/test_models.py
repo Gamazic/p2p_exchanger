@@ -1,8 +1,9 @@
 from src.repository.binance_api.models import (AdvertiserSearchApi,
                                                AdvSearchApi, CryptoCurrency,
                                                FiatCurrency, P2POrderSearchApi,
-                                               P2PTradeType, SearchApiParams,
-                                               SearchApiResponse)
+                                               P2PTradeType, RuPayment,
+                                               SearchApiParams,
+                                               SearchApiResponse, TradeMethod)
 
 EXAMPLE_RAW_SEARCH_API_PARAMS = {
     "proMerchantAds": False,
@@ -15,7 +16,7 @@ EXAMPLE_RAW_SEARCH_API_PARAMS = {
     "fiat": "RUB",
     "tradeType": "BUY",
 }
-EXAMPLE_SEARCH_API_PARAMS = SearchApiParams(
+EXAMPLE_SEARCH_API_ARG = SearchApiParams(
     pro_merchant_ads=False,
     page=1,
     rows=10,
@@ -30,12 +31,12 @@ EXAMPLE_SEARCH_API_PARAMS = SearchApiParams(
 
 def test_params():
     assert (
-        EXAMPLE_SEARCH_API_PARAMS.dict(by_alias=True, exclude_none=True)
+        EXAMPLE_SEARCH_API_ARG.dict(by_alias=True, exclude_none=True)
         == EXAMPLE_RAW_SEARCH_API_PARAMS
     )
 
 
-EXAMPLE_SEARCH_API_RESPONSE = {
+EXAMPLE_RAW_SEARCH_API_RESPONSE = {
     "code": "000000",
     "message": None,
     "messageDetail": None,
@@ -72,11 +73,11 @@ EXAMPLE_SEARCH_API_RESPONSE = {
                         "payAccount": None,
                         "payBank": None,
                         "paySubBank": None,
-                        "identifier": "Payeer",
+                        "identifier": "TinkoffNew",
                         "iconUrlColor": None,
-                        "tradeMethodName": "Payeer",
-                        "tradeMethodShortName": "Payeer",
-                        "tradeMethodBgColor": "#03A9F4",
+                        "tradeMethodName": "Тинькофф",
+                        "tradeMethodShortName": "Тинькофф",
+                        "tradeMethodBgColor": "#DAB700",
                     }
                 ],
                 "userTradeCountFilterTime": None,
@@ -141,30 +142,31 @@ EXAMPLE_SEARCH_API_RESPONSE = {
     "total": 504,
     "success": True,
 }
+EXAMPLE_SEARCH_API_RETURN = SearchApiResponse(
+    code="000000",
+    data=[
+        P2POrderSearchApi(
+            adv=AdvSearchApi(
+                max_single_trans_amount=5001.0,
+                min_single_trans_amount=5000.0,
+                price=61.82,
+                trade_methods=[TradeMethod(identifier=RuPayment.TinkoffNew)],
+            ),
+            advertiser=AdvertiserSearchApi(
+                nick_name="Kripto-Monah",
+                month_finish_rate=0.996,
+                month_order_count=210,
+                user_grade=2,
+                user_type="user",
+                user_identity="",
+            ),
+        )
+    ],
+    success=True,
+    total=504,
+)
 
 
 def test_response():
-    parsed_search_api = SearchApiResponse.parse_obj(EXAMPLE_SEARCH_API_RESPONSE)
-    search_api_response = SearchApiResponse(
-        code="000000",
-        data=[
-            P2POrderSearchApi(
-                adv=AdvSearchApi(
-                    maxSingleTransAmount=5001.0,
-                    minSingleTransAmount=5000.0,
-                    price=61.82,
-                ),
-                advertiser=AdvertiserSearchApi(
-                    nick_name="Kripto-Monah",
-                    month_finish_rate=0.996,
-                    month_order_count=210,
-                    user_grade=2,
-                    user_type="user",
-                    user_identity="",
-                ),
-            )
-        ],
-        success=True,
-        total=504,
-    )
-    assert search_api_response == parsed_search_api
+    parsed_search_api = SearchApiResponse.parse_obj(EXAMPLE_RAW_SEARCH_API_RESPONSE)
+    assert EXAMPLE_SEARCH_API_RETURN == parsed_search_api
