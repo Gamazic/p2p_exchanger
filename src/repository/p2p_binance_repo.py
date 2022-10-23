@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Protocol
 
 from src.domain.p2p import P2PFilter, P2POrder
 from src.repository.binance_api.models import (FiatCurrency, P2PTradeType,
@@ -6,7 +7,12 @@ from src.repository.binance_api.models import (FiatCurrency, P2PTradeType,
 from src.repository.binance_api.p2p_api import P2PBinanceApi
 
 
-class P2PBinanceRepository:
+class IP2PRepo(Protocol):
+    async def find(self, filter: P2PFilter) -> list[P2POrder]:
+        raise NotImplementedError()
+
+
+class P2PBinanceRepository(IP2PRepo):
     def __init__(self, binance_api: P2PBinanceApi):
         self.__binance_api = binance_api
 
