@@ -22,10 +22,9 @@ class FiatParams(BaseModel):
         return values
 
 
-class FiatFixedCryptoFilter(BaseModel):
+class FiatBundle(BaseModel):
     source_params: FiatParams
     target_params: FiatParams
-    intermediate_crypto: CryptoCurrency
 
     @root_validator
     def check_different_currencies(cls, values):
@@ -42,6 +41,14 @@ class FiatFixedCryptoFilter(BaseModel):
     # @root_validator
     # def check_source_target_min_amount(cls, values):
     #     return values
+
+
+class FiatFixedCryptoFilter(FiatBundle):
+    intermediate_crypto: CryptoCurrency
+
+
+class FiatAnyCryptoFilter(FiatBundle):
+    intermediate_cryptos: list[CryptoCurrency]
 
 
 class DifferentP2PCryptoError(Exception):

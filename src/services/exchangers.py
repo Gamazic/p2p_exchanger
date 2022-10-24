@@ -1,7 +1,9 @@
-from typing import Protocol
+from typing import Generator, Protocol
 
-from src.domain.fiat import FiatFixedCryptoFilter, FiatOrder
+from src.domain.fiat import (FiatAnyCryptoFilter, FiatFixedCryptoFilter,
+                             FiatOrder)
 from src.domain.p2p import P2PFilter, P2POrder
+from src.repository.binance_api.models import CryptoCurrency
 from src.repository.p2p_binance_repo import IP2PRepo
 
 
@@ -53,3 +55,27 @@ class FiatFixedCryptoExchangerService(IExchanger):
             payments=list(filter.target_params.payments),
         )
         return await self.__p2p_exchanger.find_best_price(target_p2p_filter)
+
+
+class FiatAnyCryptoExchangerService(IExchanger):
+    def __init__(self, fiat_exchanger: FiatFixedCryptoExchangerService):
+        self.__fiat_exhcnager = fiat_exchanger
+
+    async def find_best_price(self, filter: FiatAnyCryptoFilter) -> FiatOrder:
+        orders = await self.__find(filter)
+        return max(orders, key=lambda order: order.price)
+
+    async def __find(self, filter: FiatAnyCryptoFilter):
+        orders = []
+        cryptos_iterator = filter.intermediate_cryptos or CryptoCurrency
+        for crypto in cryptos_iterator:
+            fiat_fixed_crypto_filter = FiatFixedCryptoFilter(
+                source_params=filter.source_params,
+                target_params=filter.target_params,
+                intermediate_crypto=crypto,
+            )
+            fiat_fixed_crypto_order = await self.__fiat_exhcnager.find_best_price(
+                fiat_fixed_crypto_filter
+            )
+            orders.append(fiat_fixed_crypto_order)
+        return orders
