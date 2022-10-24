@@ -8,6 +8,7 @@ from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
                                                FiatCurrency)
 from src.services.exchangers import FiatAnyCryptoExchangerService
 
+
 api = APIRouter()
 
 
@@ -41,5 +42,8 @@ async def get_best_exchange_rate(
         exchange_rate=fiat_order.price,
         acquisition_time=fiat_order.source_order.datetime,
         intermediate_crypto=fiat_order.source_order.target_currency,
+        source_amount=fiat_order.source_order.amount,
+        source_payments=fiat_order.source_order.payments,
+        target_payments=fiat_order.target_order.payments,
     )
     return response

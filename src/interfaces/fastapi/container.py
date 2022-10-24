@@ -2,8 +2,6 @@
 DI framework. need to think about framework. I want to try `di` lib.
 But now it's fastapi di
 """
-from functools import cache
-
 from fastapi import Depends
 from httpx import AsyncClient
 
@@ -15,6 +13,7 @@ from src.services.exchangers import (FiatAnyCryptoExchangerService,
 
 
 async def http_client():
+    # TODO it should be a Singleton
     async with AsyncClient() as session:
         yield session
 
