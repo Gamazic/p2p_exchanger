@@ -8,7 +8,6 @@ from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
                                                FiatCurrency)
 from src.services.exchangers import FiatAnyCryptoExchangerService
 
-
 api = APIRouter()
 
 
