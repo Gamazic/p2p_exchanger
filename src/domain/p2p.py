@@ -2,8 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, NonNegativeFloat, root_validator
 
-from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
-                                               FiatCurrency, P2PTradeType)
+from src.repository.binance_api.models import (AnyPayment,
+                                               AnyPaymentWithNotRegistered,
+                                               CryptoCurrency, FiatCurrency,
+                                               P2PTradeType)
 
 AnyCurrency = FiatCurrency | CryptoCurrency
 
@@ -22,7 +24,7 @@ class P2POrder(BaseModel):
     price: NonNegativeFloat
     amount: NonNegativeFloat
     trade_type: P2PTradeType
-    payments: list[AnyPayment]
+    payments: list[AnyPaymentWithNotRegistered]
     datetime: datetime
 
     @root_validator

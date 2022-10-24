@@ -21,6 +21,7 @@ class TestFiatParams:
             (FiatCurrency.RUB, [KztPayment.KaspiBank, RuPayment.RosBankNew], True),
             (FiatCurrency.RUB, [RuPayment.TinkoffNew, RuPayment.RosBankNew], False),
             (FiatCurrency.RUB, [RuPayment.RosBankNew, RuPayment.RosBankNew], False),
+            (FiatCurrency.RUB, [], False),
         ],
     )
     def test(self, currency, payments, is_wrong):

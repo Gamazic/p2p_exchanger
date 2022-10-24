@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi_utils.enums import StrEnum
 from humps import camel  # type: ignore
 from pydantic import (BaseModel, Field, NonNegativeFloat, NonNegativeInt,
-                      PositiveInt)
+                      PositiveInt, validator)
 
 
 class Country(StrEnum):
@@ -77,7 +77,16 @@ class KztPayment(PaymentBase):
             raise PaymentDoesntMatchCurrencyError
 
 
+class NonRegisteredPayment(PaymentBase):
+    UnknownPayment = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        return
+
+
 AnyPayment = RuPayment | KztPayment
+AnyPaymentWithNotRegistered = RuPayment | KztPayment | NonRegisteredPayment
 
 
 class P2PTradeType(StrEnum):
@@ -105,7 +114,13 @@ class SearchApiParams(CamelModel):
 
 
 class TradeMethod(CamelModel):
-    identifier: AnyPayment
+    identifier: AnyPayment | str
+
+    @validator("identifier")
+    def drop_not_registered_payments(cls, v):
+        if not isinstance(v, PaymentBase):
+            return NonRegisteredPayment.UnknownPayment
+        return v
 
 
 class AdvSearchApi(CamelModel):

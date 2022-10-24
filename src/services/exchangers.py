@@ -1,4 +1,4 @@
-from typing import Generator, Protocol
+from typing import Protocol
 
 from src.domain.fiat import (FiatAnyCryptoFilter, FiatFixedCryptoFilter,
                              FiatOrder)
