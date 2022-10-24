@@ -102,4 +102,4 @@ async def start(m: Message, dialog_manager: DialogManager):
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, relax=1)
