@@ -1,1 +1,1 @@
-bot: python3 src/interfaces/aiogram/main.py
+bot: export PYTHONPATH="./" && python src/interfaces/aiogram/main.py
