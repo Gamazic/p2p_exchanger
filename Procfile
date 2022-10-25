@@ -1,1 +1,0 @@
-web: export PYTHONPATH="./" && python src/interfaces/aiogram/main.py
