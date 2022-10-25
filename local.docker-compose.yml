@@ -1,7 +1,7 @@
 version: "3.8"
 
 x-common-service: &image-service
-  image: registry.digitalocean.com/exchanger-registry/exchanger_core:latest
+  build: .
   user: app-user
   env_file:
     - .env
