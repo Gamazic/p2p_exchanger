@@ -1,0 +1,25 @@
+version: "3.8"
+
+x-common-service: &image-service
+  build: .
+  user: app-user
+  env_file:
+    - .env
+
+services:
+  fastapi-backend:
+    <<: *image-service
+    container_name: fastapi-backend
+    security_opt:
+      - no-new-privileges:true
+    command: ["uvicorn", "--factory", "src.interfaces.fastapi.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - 8000:8000
+    restart: always
+
+  aiogram-bot:
+    <<: *image-service
+    container_name: aiogram-bot
+    environment:
+      PYTHONPATH: "./"
+    command: ["python", "src/interfaces/aiogram/main.py"]
