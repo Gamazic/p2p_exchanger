@@ -1,20 +1,25 @@
 import os
 import ssl
 from functools import partial
+import logging
+import sys
 
 import typer
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode, DialogRegistry
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 
 from src.interfaces.aiogram.dialogs import crypto_dialog, ExchangerSG
 from src.interfaces.aiogram.config import BotWebhookConfig
 
 
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 storage = MemoryStorage()
 bot = Bot(token=os.environ.get("TG_TOKEN"))
 dp = Dispatcher(bot, storage=storage)
+dp.middleware.setup(LoggingMiddleware())
 registry = DialogRegistry(dp)
 
 
