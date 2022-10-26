@@ -1,5 +1,4 @@
 import os
-import ssl
 from functools import partial
 import logging
 import sys
