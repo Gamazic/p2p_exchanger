@@ -37,14 +37,14 @@ def start_webhook():
                            skip_updates=True, host=webhook_config.WEBAPP_HOST, port=webhook_config.WEBAPP_PORT)
 
 
-async def on_webhook_startup(app, webhook_config):
+async def on_webhook_startup(app, webhook_config: BotWebhookConfig):
     webhook = await bot.get_webhook_info()
-
-    if webhook.url != webhook_config.WEBHOOK_URL:
+    webhook_url = f"{webhook_config.WEBHOOK_HOST}{webhook_config.WEBHOOK_PATH}"
+    if webhook.url != webhook_url:
         if not webhook.url:
             await bot.delete_webhook()
 
-        await bot.set_webhook(webhook_config.WEBHOOK_URL)
+        await bot.set_webhook(webhook_url)
 
 
 cli = typer.Typer()
