@@ -1,21 +1,16 @@
 import os
+import ssl
+from functools import partial
 
+import typer
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import (Dialog, DialogManager, DialogRegistry, StartMode,
-                            Window)
-from aiogram_dialog.widgets.kbd import Select
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram.types import Message
+from aiogram_dialog import DialogManager, StartMode, DialogRegistry
 
-from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
-from src.interfaces.fastapi.container import (AsyncClient,
-                                              FiatFixedCryptoExchangerService,
-                                              P2PBinanceApi,
-                                              P2PBinanceRepository,
-                                              P2PExhcnagerService)
-from src.repository.binance_api.models import CryptoCurrency, FiatCurrency
+from src.interfaces.aiogram.dialogs import crypto_dialog, ExchangerSG
+from src.interfaces.aiogram.config import BotWebhookConfig
+
 
 storage = MemoryStorage()
 bot = Bot(token=os.environ.get("TG_TOKEN"))
@@ -23,77 +18,7 @@ dp = Dispatcher(bot, storage=storage)
 registry = DialogRegistry(dp)
 
 
-client = AsyncClient()
-exchanger_service = FiatFixedCryptoExchangerService(
-    P2PExhcnagerService(P2PBinanceRepository(P2PBinanceApi(client)))
-)
-
-
-class ExchangerSG(StatesGroup):
-    source_currency = State()
-    target_currency = State()
-    intermediate_crypto = State()
-    send_request = State()
-
-
-class SelectFromEnum(Select):
-    def __init__(self, enum, id, when=None):
-        text = Format("{item}")
-        self.__id = id
-        enums = [e.value for e in enum]
-        super().__init__(text, id, str, enums, self.__on_click, when)
-
-    async def __on_click(
-        self, call: CallbackQuery, select, manager: DialogManager, item: str
-    ):
-        manager.current_context().dialog_data[self.__id] = item
-        await manager.dialog().next()
-
-
-async def get_result(dialog_manager: DialogManager, **kwargs):
-    data = dialog_manager.current_context().dialog_data
-    filter = FiatFixedCryptoFilter.parse_obj(
-        dict(
-            source_params=FiatParams.parse_obj(
-                dict(
-                    currency=data["source_currency"],
-                    min_amount=0,
-                    payments=set(),
-                )
-            ),
-            target_params=FiatParams.parse_obj(
-                dict(
-                    currency=data["target_currency"],
-                    min_amount=0,
-                    payments=set(),
-                )
-            ),
-            intermediate_crypto=data["crypto"],
-        )
-    )
-    fiat_order = await exchanger_service.find_best_price(filter)
-    return {"price": fiat_order.price}
-
-
-animals_dialog = Dialog(
-    Window(
-        Const("Выберите source валюту"),
-        SelectFromEnum(FiatCurrency, "source_currency"),
-        state=ExchangerSG.source_currency,
-    ),
-    Window(
-        Const("Выберите target валюту"),
-        SelectFromEnum(FiatCurrency, "target_currency"),
-        state=ExchangerSG.target_currency,
-    ),
-    Window(
-        Const("Выберите crypto валюту"),
-        SelectFromEnum(CryptoCurrency, "crypto"),
-        state=ExchangerSG.intermediate_crypto,
-    ),
-    Window(Format("Обмен: {price}"), state=ExchangerSG.send_request, getter=get_result),
-)
-registry.register(animals_dialog)
+registry.register(crypto_dialog)
 
 
 @dp.message_handler(commands=["start"])
@@ -101,5 +26,34 @@ async def start(m: Message, dialog_manager: DialogManager):
     await dialog_manager.start(ExchangerSG.source_currency, mode=StartMode.NEW_STACK)
 
 
+def start_polling():
+    executor.start_polling(dp, skip_updates=True, relax=0.1)
+
+
+def start_webhook():
+    webhook_config = BotWebhookConfig()
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain(webhook_config.WEBHOOK_SSL_CERT, webhook_config.WEBHOOK_SSL_PRIVATE)
+    on_startup = partial(on_webhook_startup, webhook_config=webhook_config)
+    executor.start_webhook(dispatcher=dp, webhook_path=webhook_config.WEBHOOK_PATH, on_startup=on_startup,
+                           skip_updates=True, host="0.0.0.0", port=webhook_config.WEBAPP_PORT, ssl_context=context)
+
+
+async def on_webhook_startup(app, webhook_config):
+    webhook = await bot.get_webhook_info()
+
+    if webhook.url != webhook_config.WEBHOOK_URL:
+        if not webhook.url:
+            await bot.delete_webhook()
+
+        await bot.set_webhook(webhook_config.WEBHOOK_URL, certificate=open(webhook_config.WEBHOOK_SSL_CERT, 'rb'))
+
+
+cli = typer.Typer()
+
+cli.command()(start_polling)
+cli.command()(start_webhook)
+
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True, relax=1)
+    cli()
