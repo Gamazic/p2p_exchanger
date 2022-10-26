@@ -2,9 +2,6 @@ from pydantic import BaseSettings, FilePath, PositiveInt, AnyHttpUrl, validator
 
 
 class BotWebhookConfig(BaseSettings):
-    WEBHOOK_SSL_CERT: FilePath
-    WEBHOOK_SSL_PRIVATE: FilePath
-
     WEBHOOK_HOST: AnyHttpUrl
     WEBHOOK_PATH: str
     WEBHOOK_URL: AnyHttpUrl

@@ -32,11 +32,9 @@ def start_polling():
 
 def start_webhook():
     webhook_config = BotWebhookConfig()
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_cert_chain(webhook_config.WEBHOOK_SSL_CERT, webhook_config.WEBHOOK_SSL_PRIVATE)
     on_startup = partial(on_webhook_startup, webhook_config=webhook_config)
     executor.start_webhook(dispatcher=dp, webhook_path=webhook_config.WEBHOOK_PATH, on_startup=on_startup,
-                           skip_updates=True, host="0.0.0.0", port=webhook_config.WEBAPP_PORT, ssl_context=context)
+                           skip_updates=True, host=webhook_config.WEBAPP_HOST, port=webhook_config.WEBAPP_PORT)
 
 
 async def on_webhook_startup(app, webhook_config):
@@ -46,7 +44,7 @@ async def on_webhook_startup(app, webhook_config):
         if not webhook.url:
             await bot.delete_webhook()
 
-        await bot.set_webhook(webhook_config.WEBHOOK_URL, certificate=open(webhook_config.WEBHOOK_SSL_CERT, 'rb'))
+        await bot.set_webhook(webhook_config.WEBHOOK_URL)
 
 
 cli = typer.Typer()
