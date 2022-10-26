@@ -13,4 +13,4 @@ class BotWebhookConfig(BaseSettings):
         return f"{host}{path}"
 
     WEBAPP_PORT: PositiveInt
-    WEBAPP_HOST: AnyHttpUrl = AnyHttpUrl("localhost", scheme="http")
+    WEBAPP_HOST: str
