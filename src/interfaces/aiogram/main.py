@@ -1,18 +1,17 @@
-import os
-from functools import partial
 import logging
+import os
 import sys
+from functools import partial
 
 import typer
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import Message
-from aiogram_dialog import DialogManager, StartMode, DialogRegistry
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.types import Message
+from aiogram_dialog import DialogManager, DialogRegistry, StartMode
 
-from src.interfaces.aiogram.dialogs import crypto_dialog, ExchangerSG
 from src.interfaces.aiogram.config import BotWebhookConfig
-
+from src.interfaces.aiogram.dialog import ExchangerSG, crypto_dialog
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 storage = MemoryStorage()
@@ -27,7 +26,17 @@ registry.register(crypto_dialog)
 
 @dp.message_handler(commands=["start"])
 async def start(m: Message, dialog_manager: DialogManager):
+    await m.answer("Hi! This is exchanger bot. Use /exchange command and try it!")
+
+
+@dp.message_handler(commands=["exchange"])
+async def exchange(m: Message, dialog_manager: DialogManager):
     await dialog_manager.start(ExchangerSG.source_currency, mode=StartMode.NEW_STACK)
+
+
+@dp.message_handler(commands=["favourites"])
+async def favourites(m: Message, dialog_manager: DialogManager):
+    await m.answer("Coming soon...")
 
 
 def start_polling():
@@ -37,8 +46,14 @@ def start_polling():
 def start_webhook():
     webhook_config = BotWebhookConfig()
     on_startup = partial(on_webhook_startup, webhook_config=webhook_config)
-    executor.start_webhook(dispatcher=dp, webhook_path=webhook_config.WEBHOOK_PATH, on_startup=on_startup,
-                           skip_updates=True, host=webhook_config.WEBAPP_HOST, port=webhook_config.WEBAPP_PORT)
+    executor.start_webhook(
+        dispatcher=dp,
+        webhook_path=webhook_config.WEBHOOK_PATH,
+        on_startup=on_startup,
+        skip_updates=True,
+        host=webhook_config.WEBAPP_HOST,
+        port=webhook_config.WEBAPP_PORT,
+    )
 
 
 async def on_webhook_startup(app, webhook_config: BotWebhookConfig):
