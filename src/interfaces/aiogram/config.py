@@ -1,4 +1,4 @@
-from pydantic import BaseSettings, FilePath, PositiveInt, AnyHttpUrl, validator
+from pydantic import AnyHttpUrl, BaseSettings, PositiveInt
 
 
 class BotWebhookConfig(BaseSettings):

@@ -7,13 +7,13 @@ from aiogram_dialog.widgets.kbd import Group, Multiselect, Next, Select
 from aiogram_dialog.widgets.text import Const, Format, Text
 
 from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
+from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
+                                           FiatCurrency)
 from src.interfaces.fastapi.container import (AsyncClient,
                                               FiatFixedCryptoExchangerService,
                                               P2PBinanceApi,
                                               P2PBinanceRepository,
                                               P2PExhcnagerService)
-from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               RuPayment, KztPayment)
 
 client = AsyncClient()
 exchanger_service = FiatFixedCryptoExchangerService(
@@ -21,18 +21,11 @@ exchanger_service = FiatFixedCryptoExchangerService(
 )
 
 
-payments = {
-    FiatCurrency.RUB.value: [el.value for el in RuPayment],
-    FiatCurrency.KZT.value: [el.value for el in KztPayment]
-}
-
-
 class ExchangerSG(StatesGroup):
     source_currency = State()
     source_payments = State()
     target_currency = State()
     target_payments = State()
-    intermediate_crypto = State()
     send_request = State()
 
 
@@ -63,13 +56,13 @@ class SelectFromEnum(Select):
 class MultiselectRelatedPayment(Multiselect):
     def __init__(
         self,
-        checked_text: Text, unchecked_text: Text,
-        items: dict, widget_id: str, related_select_id: str
+        checked_text: Text,
+        unchecked_text: Text,
+        items: dict,
+        widget_id: str,
+        related_select_id: str,
     ):
-        super().__init__(
-            checked_text, unchecked_text, widget_id, str,
-            items
-        )
+        super().__init__(checked_text, unchecked_text, widget_id, str, items)
 
         self.__related_select_id = related_select_id
         self.items_getter = self.__items_getter
@@ -100,20 +93,24 @@ async def get_result(dialog_manager: DialogManager, **kwargs):
                     payments=set(widget_data["target_payments"]),
                 )
             ),
-            intermediate_crypto=dialog_data["crypto"],
+            intermediate_crypto=CryptoCurrency.USDT.value,
         )
     )
     fiat_order = await exchanger_service.find_best_price(filter)
     best_crypto = fiat_order.source_order.target_currency.value
     source_currency = fiat_order.source_order.source_currency
     target_currency = fiat_order.target_order.target_currency
-    source_order_url = f"https://p2p.binance.com/ru/trade/all-payments/" \
-                        f"{best_crypto}?fiat=" \
-                        f"{source_currency}"
-    target_order_url = f"https://p2p.binance.com/ru/trade/sell/" \
-                        f"{best_crypto}?fiat={target_currency}&payment=ALL"
+    source_order_url = (
+        f"https://p2p.binance.com/ru/trade/all-payments/"
+        f"{best_crypto}?fiat="
+        f"{source_currency}"
+    )
+    target_order_url = (
+        f"https://p2p.binance.com/ru/trade/sell/"
+        f"{best_crypto}?fiat={target_currency}&payment=ALL"
+    )
     return {
-        "price": round(fiat_order.price, 2),
+        "price": fiat_order.price,
         "crypto": best_crypto,
         "source_order_url": source_order_url,
         "target_order_url": target_order_url,
@@ -132,9 +129,9 @@ crypto_dialog = Dialog(
             MultiselectRelatedPayment(
                 Format("+ {item}"),
                 Format("{item}"),
-                items=payments,
+                items=PAYMENTS_CASE,
                 widget_id="source_payments",
-                related_select_id="source_currency"
+                related_select_id="source_currency",
             ),
             Next(),
         ),
@@ -153,23 +150,22 @@ crypto_dialog = Dialog(
             MultiselectRelatedPayment(
                 Format("+ {item}"),
                 Format("{item}"),
-                items=payments,
+                items=PAYMENTS_CASE,
                 widget_id="target_payments",
-                related_select_id="target_currency"
+                related_select_id="target_currency",
             ),
             Next(),
         ),
         state=ExchangerSG.target_payments,
     ),
     Window(
-        Const("Выберите crypto валюту"),
-        SelectFromEnum(CryptoCurrency, "crypto"),
-        state=ExchangerSG.intermediate_crypto,
+        Format(
+            "Обмен: {price:.2f}\n"
+            "Промежуточная валюта: {crypto}\n"
+            "Ссылка на покупку: {source_order_url}\n"
+            "Ссылка на продажу: {target_order_url}"
+        ),
+        state=ExchangerSG.send_request,
+        getter=get_result,
     ),
-    Window(
-        Format("Обмен: {price}\n"
-               "Промежуточная валюта: {crypto}\n"
-               "Ссылка на покупку: {source_order_url}\n"
-               "Ссылка на продажу: {target_order_url}"),
-        state=ExchangerSG.send_request, getter=get_result),
 )
