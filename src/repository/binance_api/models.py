@@ -17,11 +17,11 @@ class FiatCurrency(StrEnum):
 
 
 class CryptoCurrency(StrEnum):
-    USDT = auto()
     BTC = auto()
-    BUSD = auto()
-    BNB = auto()
     ETH = auto()
+    BNB = auto()
+    USDT = auto()
+    BUSD = auto()
     SHIB = auto()
 
 
@@ -36,31 +36,31 @@ class PaymentBase(StrEnum):
 
 
 class RuPayment(PaymentBase):
-    TinkoffNew = auto()
-    RosBankNew = auto()
-    RaiffeisenBank = auto()
     QIWI = auto()
-    YandexMoneyNew = auto()
-    MTSBank = auto()
-    HomeCreditBank = auto()
-    PostBankNew = auto()
-    RUBfiatbalance = auto()
+    ABank = auto()
     Payeer = auto()
-    UralsibBank = auto()
-    AkBarsBank = auto()
-    Mobiletopup = auto()
+    MTSBank = auto()
     BCSBank = auto()
     Advcash = auto()
+    AkBarsBank = auto()
+    TinkoffNew = auto()
+    RosBankNew = auto()
+    UralsibBank = auto()
+    PostBankNew = auto()
+    Mobiletopup = auto()
+    CashInPerson = auto()
+    OTPBankRussia = auto()
+    CitibankRussia = auto()
+    RaiffeisenBank = auto()
+    YandexMoneyNew = auto()
+    HomeCreditBank = auto()
+    RUBfiatbalance = auto()
+    UniCreditRussia = auto()
+    CreditEuropeBank = auto()
     RenaissanceCredit = auto()
+    RaiffeisenBankAval = auto()
     RussianStandardBank = auto()
     BankSaintPetersburg = auto()
-    UniCreditRussia = auto()
-    ABank = auto()
-    OTPBankRussia = auto()
-    CreditEuropeBank = auto()
-    CitibankRussia = auto()
-    CashInPerson = auto()
-    RaiffeisenBankAval = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
@@ -69,7 +69,14 @@ class RuPayment(PaymentBase):
 
 
 class KztPayment(PaymentBase):
+    QIWI = auto()
+    BANK = auto()
     KaspiBank = auto()
+    HalykBank = auto()
+    ForteBank = auto()
+    JysanBank = auto()
+    Mobiletopup = auto()
+    CenterCreditBank = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
