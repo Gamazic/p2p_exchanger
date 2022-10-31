@@ -13,12 +13,12 @@ from src.interfaces.aiogram.widgets import (MultiselectRelatedPayment,
                                             SelectFromEnum)
 from src.interfaces.fastapi.container import (AsyncClient,
                                               FiatFixedCryptoExchangerService,
-                                              P2PBinanceApi, P2PBinanceRepo,
+                                              P2PBinanceApi, CachedP2PBinanceRepo,
                                               P2PExchangerService)
 
 client = AsyncClient()
 exchanger_service = FiatFixedCryptoExchangerService(
-    P2PExchangerService(P2PBinanceRepo(P2PBinanceApi(client)))
+    P2PExchangerService(CachedP2PBinanceRepo(P2PBinanceApi(client)))
 )
 
 

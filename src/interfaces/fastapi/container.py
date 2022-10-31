@@ -6,7 +6,7 @@ from fastapi import Depends
 from httpx import AsyncClient
 
 from src.repository.binance_api.p2p_api import P2PBinanceApi
-from src.repository.p2p_binance_repo import P2PBinanceRepo
+from src.repository.p2p_binance_repo import P2PBinanceRepo, CachedP2PBinanceRepo
 from src.services.exchangers import (FiatAnyCryptoExchangerService,
                                      FiatFixedCryptoExchangerService,
                                      P2PExchangerService)

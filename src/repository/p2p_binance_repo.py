@@ -56,7 +56,7 @@ class P2PBinanceRepo(P2PRepoProto):
 
 
 class CachedP2PBinanceRepo(P2PRepoProto):
-    TTL = 1
+    TTL = 10
     SIZE = 100
 
     def __init__(self, binance_api: P2PBinanceApi):
