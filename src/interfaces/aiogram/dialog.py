@@ -1,14 +1,16 @@
-from enum import Enum
+from collections import defaultdict
 
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import CallbackQuery
+from aiogram.types import ParseMode
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Group, Multiselect, Next, Select
-from aiogram_dialog.widgets.text import Const, Format, Text
+from aiogram_dialog.widgets.kbd import Back, Group, Next, Row
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi
 
 from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
 from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
                                            FiatCurrency)
+from src.interfaces.aiogram.widgets import (MultiselectRelatedPayment,
+                                            SelectFromEnum)
 from src.interfaces.fastapi.container import (AsyncClient,
                                               FiatFixedCryptoExchangerService,
                                               P2PBinanceApi,
@@ -29,68 +31,32 @@ class ExchangerSG(StatesGroup):
     send_request = State()
 
 
-class SelectFromEnum(Select):
-    def __init__(
-        self, enum: Enum, widget_id: str, exclude_button_from_id: str | None = None
-    ):
-        text = Format("{item}")
-        items = [e.value for e in enum]
-        super().__init__(text, widget_id, str, items, self.__on_click)
-
-        self.items_getter = self.__items_getter
-        self.__items = items
-        self.__id = widget_id
-        self.__exclude_button_from_id = exclude_button_from_id
-
-    def __items_getter(self, data: dict):
-        exclude_data = data["dialog_data"].get(self.__exclude_button_from_id, None)
-        return (item for item in self.__items if item != exclude_data)
-
-    async def __on_click(
-        self, call: CallbackQuery, select, manager: DialogManager, item: str
-    ):
-        manager.current_context().dialog_data[self.__id] = item
-        await manager.dialog().next()
-
-
-class MultiselectRelatedPayment(Multiselect):
-    def __init__(
-        self,
-        checked_text: Text,
-        unchecked_text: Text,
-        items: dict,
-        widget_id: str,
-        related_select_id: str,
-    ):
-        super().__init__(checked_text, unchecked_text, widget_id, str, items)
-
-        self.__related_select_id = related_select_id
-        self.items_getter = self.__items_getter
-        self.__items = items
-        self.__id = widget_id
-
-    def __items_getter(self, data: dict):
-        related_data_selector = data["dialog_data"].get(self.__related_select_id)
-        return self.__items[related_data_selector]
+async def get_data(dialog_manager: DialogManager, **kwargs):
+    return defaultdict(
+        None,
+        **(
+            dialog_manager.current_context().dialog_data
+            | dialog_manager.current_context().widget_data
+        ),
+    )
 
 
 async def get_result(dialog_manager: DialogManager, **kwargs):
-    dialog_data = dialog_manager.current_context().dialog_data
-    widget_data = dialog_manager.current_context().widget_data
+    data = await get_data(dialog_manager, **kwargs)
     filter = FiatFixedCryptoFilter.parse_obj(
         dict(
             source_params=FiatParams.parse_obj(
                 dict(
-                    currency=dialog_data["source_currency"],
+                    currency=data["source_currency"],
                     min_amount=0,
-                    payments=set(widget_data["source_payments"]),
+                    payments=set(data["source_payments"]),
                 )
             ),
             target_params=FiatParams.parse_obj(
                 dict(
-                    currency=dialog_data["target_currency"],
+                    currency=data["target_currency"],
                     min_amount=0,
-                    payments=set(widget_data["target_payments"]),
+                    payments=set(data["target_payments"]),
                 )
             ),
             intermediate_crypto=CryptoCurrency.USDT.value,
@@ -114,58 +80,95 @@ async def get_result(dialog_manager: DialogManager, **kwargs):
         "crypto": best_crypto,
         "source_order_url": source_order_url,
         "target_order_url": target_order_url,
-    }
+    } | data
 
+
+dialog_template = Jinja(
+    """
+{% if source_currency %}
+Исходная валюта: *{{source_currency}}*
+{% endif %}
+{% if source_payments %}
+Способы оплаты: *{{"*,*".join(source_payments)}}*
+{% endif %}
+{% if target_currency %}
+Целевая валюта: *{{target_currency}}*
+{% endif %}
+{% if target_payments %}
+Способы оплаты: *{{"*,*".join(target_payments)}}*
+{% endif %}
+"""
+)
 
 crypto_dialog = Dialog(
     Window(
-        Const("Выберите source валюту"),
+        Const("Выберите исходную валюту"),
         SelectFromEnum(FiatCurrency, "source_currency"),
         state=ExchangerSG.source_currency,
+        parse_mode=ParseMode.MARKDOWN,
     ),
     Window(
-        Const("Выберите source способы оплаты"),
+        Multi(
+            Format("Выберите способы оплаты для *{source_currency}*"), dialog_template
+        ),
         Group(
             MultiselectRelatedPayment(
-                Format("+ {item}"),
+                Format("✓ {item}"),
                 Format("{item}"),
                 items=PAYMENTS_CASE,
                 widget_id="source_payments",
                 related_select_id="source_currency",
             ),
-            Next(),
+            Row(Back(), Next()),
         ),
+        parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.source_payments,
+        getter=get_data,
     ),
     Window(
-        Const("Выберите target валюту"),
-        SelectFromEnum(
-            FiatCurrency, "target_currency", exclude_button_from_id="source_currency"
+        Multi(Const("Выберите целевую валюта"), dialog_template),
+        Group(
+            SelectFromEnum(
+                FiatCurrency,
+                "target_currency",
+                exclude_button_from_id="source_currency",
+            ),
+            Back(),
         ),
+        parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_currency,
+        getter=get_data,
     ),
     Window(
-        Const("Выберите target способы оплаты"),
+        Multi(Format("Выберите способ оплаты для {target_currency}"), dialog_template),
         Group(
             MultiselectRelatedPayment(
-                Format("+ {item}"),
+                Format("✓ {item}"),
                 Format("{item}"),
                 items=PAYMENTS_CASE,
                 widget_id="target_payments",
                 related_select_id="target_currency",
             ),
-            Next(),
+            Row(Back(), Next()),
         ),
+        parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_payments,
+        getter=get_data,
     ),
     Window(
-        Format(
-            "Обмен: {price:.2f}\n"
-            "Промежуточная валюта: {crypto}\n"
-            "Ссылка на покупку: {source_order_url}\n"
-            "Ссылка на продажу: {target_order_url}"
+        Multi(
+            Format("Курс обмена: *{price:.2f}*"),
+            dialog_template,
+            Format(
+                "Промежуточная валюта: *{crypto}*\n"
+                "[Ссылка на покупку]({source_order_url})\n"
+                "[Ссылка на продажу]({target_order_url})"
+            ),
         ),
+        parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.send_request,
         getter=get_result,
+        preview_data={},
+        disable_web_page_preview=True,
     ),
 )
