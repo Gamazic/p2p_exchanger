@@ -65,14 +65,16 @@ async def get_result(dialog_manager: DialogManager, **kwargs):
     best_crypto = fiat_order.source_order.target_currency.value
     source_currency = fiat_order.source_order.source_currency
     target_currency = fiat_order.target_order.target_currency
+    first_source_payment = next(iter(fiat_order.source_order.payments), "all-payments")
+    first_target_payment = next(iter(fiat_order.target_order.payments), "ALL")
     source_order_url = (
-        f"https://p2p.binance.com/ru/trade/all-payments/"
+        f"https://p2p.binance.com/ru/trade/{first_source_payment}/"
         f"{best_crypto}?fiat="
         f"{source_currency}"
     )
     target_order_url = (
         f"https://p2p.binance.com/ru/trade/sell/"
-        f"{best_crypto}?fiat={target_currency}&payment=ALL"
+        f"{best_crypto}?fiat={target_currency}&payment={first_target_payment}"
     )
     return {
         "price": fiat_order.price,
@@ -118,7 +120,7 @@ crypto_dialog = Dialog(
                 widget_id="source_payments",
                 related_select_id="source_currency",
             ),
-            Row(Back(), Next()),
+            Next(),
         ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.source_payments,
@@ -126,14 +128,11 @@ crypto_dialog = Dialog(
     ),
     Window(
         Multi(Const("Выберите целевую валюта"), dialog_template),
-        Group(
             SelectFromEnum(
                 FiatCurrency,
                 "target_currency",
                 exclude_button_from_id="source_currency",
             ),
-            Back(),
-        ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_currency,
         getter=get_data,
@@ -148,7 +147,7 @@ crypto_dialog = Dialog(
                 widget_id="target_payments",
                 related_select_id="target_currency",
             ),
-            Row(Back(), Next()),
+            Next(),
         ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_payments,
