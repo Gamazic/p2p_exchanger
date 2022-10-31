@@ -1,3 +1,8 @@
+from copy import deepcopy
+
+import pytest
+from fastapi.encoders import jsonable_encoder
+
 from src.repository.binance_api.models import (AdvertiserSearchApi,
                                                AdvSearchApi, CryptoCurrency,
                                                FiatCurrency, P2POrderSearchApi,
@@ -6,35 +11,45 @@ from src.repository.binance_api.models import (AdvertiserSearchApi,
                                                SearchApiResponse, TradeMethod)
 
 EXAMPLE_RAW_SEARCH_API_PARAMS = {
-    "proMerchantAds": False,
+    # "proMerchantAds": False,
     "page": 1,
     "rows": 10,
-    "payTypes": [],
+    "payTypes": ["TinkoffNew"],
     "countries": [],
-    "publisherType": "merchant",
+    # "publisherType": None,
     "asset": "USDT",
     "fiat": "RUB",
     "tradeType": "BUY",
+    "transAmount": 0,
 }
+EXAMPLE_2_RAW_SEARCH_API_PARAMS = EXAMPLE_RAW_SEARCH_API_PARAMS | {"asset": "BTC"}
 EXAMPLE_SEARCH_API_ARG = SearchApiParams(
-    pro_merchant_ads=False,
+    pro_merchant_ads=None,
     page=1,
     rows=10,
-    pay_types=[],
-    countries=[],
-    publisher_type="merchant",
+    pay_types=frozenset({RuPayment.TinkoffNew}),
+    countries=frozenset(),
+    publisher_type=None,
     asset=CryptoCurrency.USDT,
     fiat=FiatCurrency.RUB,
     trade_type=P2PTradeType.BUY,
+    trans_amount=0.0,
+)
+EXAMPLE_2_SEARCH_API_ARG = SearchApiParams(
+    **EXAMPLE_SEARCH_API_ARG.dict(exclude={"asset"}), asset=CryptoCurrency.BTC
 )
 
 
 class TestSearchApiParams:
-    def test_params(self):
-        assert (
-            EXAMPLE_SEARCH_API_ARG.dict(by_alias=True, exclude_none=True)
-            == EXAMPLE_RAW_SEARCH_API_PARAMS
-        )
+    @pytest.mark.parametrize(
+        "arg,params",
+        [
+            (EXAMPLE_SEARCH_API_ARG, EXAMPLE_RAW_SEARCH_API_PARAMS),
+            (EXAMPLE_2_SEARCH_API_ARG, EXAMPLE_2_RAW_SEARCH_API_PARAMS),
+        ],
+    )
+    def test_params(self, arg, params):
+        assert jsonable_encoder(arg, by_alias=True, exclude_none=True) == params
 
 
 EXAMPLE_RAW_SEARCH_API_RESPONSE = {
@@ -143,6 +158,12 @@ EXAMPLE_RAW_SEARCH_API_RESPONSE = {
     "total": 504,
     "success": True,
 }
+EXAMPLE_RAW_SEARCH_API_RESPONSE_2 = deepcopy(EXAMPLE_RAW_SEARCH_API_RESPONSE)
+EXAMPLE_RAW_SEARCH_API_RESPONSE_2["data"][0]["adv"]["price"] = 63
+EXAMPLE_2_RAW_SEARCH_API_RESPONSE = deepcopy(EXAMPLE_RAW_SEARCH_API_RESPONSE)
+EXAMPLE_2_RAW_SEARCH_API_RESPONSE["data"][0]["adv"]["price"] = 228
+EXAMPLE_2_RAW_SEARCH_API_RESPONSE_2 = deepcopy(EXAMPLE_RAW_SEARCH_API_RESPONSE)
+EXAMPLE_2_RAW_SEARCH_API_RESPONSE_2["data"][0]["adv"]["price"] = 322
 EXAMPLE_RAW_SEARCH_API_RESPONSE_UNSEEN_PAYMENT = {
     "code": "000000",
     "message": None,
@@ -272,12 +293,27 @@ EXAMPLE_SEARCH_API_RETURN = SearchApiResponse(
     success=True,
     total=504,
 )
+EXAMPLE_SEARCH_API_RETURN_2 = deepcopy(EXAMPLE_SEARCH_API_RETURN)
+EXAMPLE_SEARCH_API_RETURN_2.data[0].adv.price = 63
+EXAMPLE_2_SEARCH_API_RETURN = deepcopy(EXAMPLE_SEARCH_API_RETURN)
+EXAMPLE_2_SEARCH_API_RETURN.data[0].adv.price = 228
+EXAMPLE_2_SEARCH_API_RETURN_2 = deepcopy(EXAMPLE_SEARCH_API_RETURN)
+EXAMPLE_2_SEARCH_API_RETURN_2.data[0].adv.price = 322
 
 
 class TestSearchApiResponse:
-    def test_response(self):
-        parsed_search_api = SearchApiResponse.parse_obj(EXAMPLE_RAW_SEARCH_API_RESPONSE)
-        assert EXAMPLE_SEARCH_API_RETURN == parsed_search_api
+    @pytest.mark.parametrize(
+        "expected,parsed",
+        [
+            (EXAMPLE_SEARCH_API_RETURN, EXAMPLE_RAW_SEARCH_API_RESPONSE),
+            (EXAMPLE_SEARCH_API_RETURN_2, EXAMPLE_SEARCH_API_RETURN_2),
+            (EXAMPLE_2_SEARCH_API_RETURN, EXAMPLE_2_RAW_SEARCH_API_RESPONSE),
+            (EXAMPLE_2_SEARCH_API_RETURN_2, EXAMPLE_2_RAW_SEARCH_API_RESPONSE_2),
+        ],
+    )
+    def test_response(self, expected, parsed):
+        parsed_search_api = SearchApiResponse.parse_obj(parsed)
+        assert expected == parsed_search_api
 
     def test_unseen_payment(self):
         parsed_search_api = SearchApiResponse.parse_obj(

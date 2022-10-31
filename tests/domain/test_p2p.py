@@ -18,7 +18,7 @@ class TestP2POrder:
             price=0,
             amount=0,
             trade_type=P2PTradeType.BUY,
-            payments=[],
+            payments=set(),
             datetime=datetime.now(),
         )
 
@@ -30,7 +30,7 @@ class TestP2POrder:
                 price=0,
                 amount=0,
                 trade_type=P2PTradeType.BUY,
-                payments=[],
+                payments=set(),
                 datetime=datetime.now(),
             )
         with pytest.raises(P2PSameCurrencyTypeError):
@@ -40,7 +40,7 @@ class TestP2POrder:
                 price=0,
                 amount=0,
                 trade_type=P2PTradeType.BUY,
-                payments=[],
+                payments=set(),
                 datetime=datetime.now(),
             )
 
@@ -52,7 +52,7 @@ class TestP2POrder:
                 price=0,
                 amount=0,
                 trade_type=P2PTradeType.SELL,
-                payments=[],
+                payments=set(),
                 datetime=datetime.now(),
             )
         with pytest.raises(P2PTradeTypeError):
@@ -62,7 +62,7 @@ class TestP2POrder:
                 price=0,
                 amount=0,
                 trade_type=P2PTradeType.BUY,
-                payments=[],
+                payments=set(),
                 datetime=datetime.now(),
             )
 
@@ -73,7 +73,7 @@ class TestP2PFilter:
             source_currency=FiatCurrency.RUB,
             target_currency=CryptoCurrency.BTC,
             min_amount=0,
-            payments=[],
+            payments=frozenset(),
         )
 
     def test_currencies(self):
@@ -82,7 +82,7 @@ class TestP2PFilter:
                 source_currency=FiatCurrency.RUB,
                 target_currency=FiatCurrency.KZT,
                 min_amount=0,
-                payments=[],
+                payments=frozenset(),
             )
 
     def test_payments(self):
@@ -91,17 +91,17 @@ class TestP2PFilter:
                 source_currency=FiatCurrency.RUB,
                 target_currency=CryptoCurrency.USDT,
                 min_amount=0,
-                payments=[KztPayment.KaspiBank],
+                payments=frozenset({KztPayment.KaspiBank}),
             )
         P2PFilter(
             source_currency=FiatCurrency.RUB,
             target_currency=CryptoCurrency.USDT,
             min_amount=0,
-            payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
+            payments=frozenset({RuPayment.TinkoffNew, RuPayment.RaiffeisenBank}),
         )
         P2PFilter(
             source_currency=CryptoCurrency.USDT,
             target_currency=FiatCurrency.KZT,
             min_amount=0,
-            payments=[KztPayment.KaspiBank],
+            payments=frozenset({KztPayment.KaspiBank}),
         )

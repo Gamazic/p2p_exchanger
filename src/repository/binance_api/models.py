@@ -107,10 +107,13 @@ class SearchApiParams(CamelModel):
     rows: PositiveInt = 10
     page: PositiveInt = 1
     publisher_type: Literal["merchant"] | None = None
-    pay_types: list[AnyPayment] = Field(default_factory=list)
-    countries: list[Country] = Field(default_factory=list)
+    pay_types: frozenset[AnyPayment] = Field(default_factory=set)
+    countries: frozenset[Country] = Field(default_factory=set)
     trans_amount: NonNegativeFloat | None = None
     pro_merchant_ads: bool | None = None
+
+    class Config:
+        frozen = True
 
 
 class TradeMethod(CamelModel):

@@ -10,7 +10,7 @@ from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                RuPayment)
 from src.services.exchangers import (FiatAnyCryptoExchangerService,
                                      FiatFixedCryptoExchangerService,
-                                     P2PExhcnagerService)
+                                     P2PExchangerService)
 from tests.repository.test_repo import (  # type: ignore
     EXAMPLE_P2PRepo_FIND_FILTER_KZT, EXAMPLE_P2PRepo_FIND_FILTER_RUB,
     EXAMPLE_P2PRepo_FIND_RETURN_KZT, EXAMPLE_P2PRepo_FIND_RETURN_RUB)
@@ -26,26 +26,34 @@ class TestP2PExchanger:
         return RepoStub()
 
     async def test_find_best_price(self, repo_stub):
-        service = P2PExhcnagerService(repo_stub)
+        service = P2PExchangerService(repo_stub)
         result = await service.find_best_price(EXAMPLE_P2PRepo_FIND_FILTER_RUB)
         assert result == EXAMPLE_P2PRepo_FIND_RETURN_RUB
 
 
 EXAMPLE_FiatExchanger_USDT_FIND_FILTER = FiatFixedCryptoFilter(
     source_params=FiatParams(
-        currency=FiatCurrency.RUB, min_amount=0, payments={RuPayment.TinkoffNew}
+        currency=FiatCurrency.RUB,
+        min_amount=0,
+        payments=frozenset({RuPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
-        currency=FiatCurrency.KZT, min_amount=0, payments={KztPayment.KaspiBank}
+        currency=FiatCurrency.KZT,
+        min_amount=0,
+        payments=frozenset({KztPayment.KaspiBank}),
     ),
     intermediate_crypto=CryptoCurrency.USDT,
 )
 EXAMPLE_FiatExchanger_BTC_FIND_FILTER = FiatFixedCryptoFilter(
     source_params=FiatParams(
-        currency=FiatCurrency.RUB, min_amount=0, payments={RuPayment.TinkoffNew}
+        currency=FiatCurrency.RUB,
+        min_amount=0,
+        payments=frozenset({RuPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
-        currency=FiatCurrency.KZT, min_amount=0, payments={KztPayment.KaspiBank}
+        currency=FiatCurrency.KZT,
+        min_amount=0,
+        payments=frozenset({KztPayment.KaspiBank}),
     ),
     intermediate_crypto=CryptoCurrency.BTC,
 )
@@ -61,7 +69,7 @@ EXAMPLE_FiatExchanger_BTC_FIND_RETURN = FiatOrder(
         price=30.12,
         amount=5001.0,
         trade_type=P2PTradeType.BUY,
-        payments=[RuPayment.TinkoffNew],
+        payments={RuPayment.TinkoffNew},
         datetime=datetime.now(),
     ),
     target_order=P2POrder(
@@ -70,7 +78,7 @@ EXAMPLE_FiatExchanger_BTC_FIND_RETURN = FiatOrder(
         price=512.23,
         amount=5001.0,
         trade_type=P2PTradeType.SELL,
-        payments=[KztPayment.KaspiBank],
+        payments={KztPayment.KaspiBank},
         datetime=datetime.now(),
     ),
     price=512.23 / 30.12,
@@ -103,10 +111,14 @@ class TestFiatFixedCryptoExchanger:
 
 EXAMPLE_FiatAnyCryptoExchanger_FIND_FILTER = FiatAnyCryptoFilter(
     source_params=FiatParams(
-        currency=FiatCurrency.RUB, min_amount=0, payments={RuPayment.TinkoffNew}
+        currency=FiatCurrency.RUB,
+        min_amount=0,
+        payments=frozenset({RuPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
-        currency=FiatCurrency.KZT, min_amount=0, payments={KztPayment.KaspiBank}
+        currency=FiatCurrency.KZT,
+        min_amount=0,
+        payments=frozenset({KztPayment.KaspiBank}),
     ),
     intermediate_cryptos=[CryptoCurrency.USDT, CryptoCurrency.BTC],
 )

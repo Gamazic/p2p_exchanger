@@ -1,5 +1,4 @@
-from pydantic import (BaseModel, Field, NonNegativeFloat, root_validator,
-                      validator)
+from pydantic import BaseModel, NonNegativeFloat, root_validator, validator
 
 from src.domain.p2p import P2POrder
 from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
@@ -13,7 +12,7 @@ class SameFiatCurrencyError(Exception):
 class FiatParams(BaseModel):
     currency: FiatCurrency
     min_amount: NonNegativeFloat
-    payments: set[AnyPayment]
+    payments: frozenset[AnyPayment]
 
     @root_validator
     def check_payments_match_currency(cls, values):
@@ -32,7 +31,7 @@ class FiatBundle(BaseModel):
         target_currency = values["target_params"].currency
         if source_currency is target_currency:
             raise SameFiatCurrencyError(
-                f"Expected different source and target currecnies."
+                f"Expected different source and target currencies."
                 f"Got {source_currency=}, {target_currency=}"
             )
         return values
@@ -86,7 +85,7 @@ class FiatOrder(BaseModel):
         target_fiat_currency = values["target_order"].target_currency
         if source_fiat_currency is target_fiat_currency:
             raise SameFiatCurrencyError(
-                f"Expected different source and target currecnies."
+                f"Expected different source and target currencies."
                 f"Got {source_fiat_currency=}, {target_fiat_currency=}"
             )
         return values

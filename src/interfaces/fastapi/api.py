@@ -27,10 +27,10 @@ async def get_best_exchange_rate(
         source_params=FiatParams(
             currency=source_currency,
             min_amount=min_amount,
-            payments=set(source_payments),
+            payments=frozenset(source_payments),
         ),
         target_params=FiatParams(
-            currency=target_currency, min_amount=0, payments=set(target_payments)
+            currency=target_currency, min_amount=0, payments=frozenset(target_payments)
         ),
         intermediate_cryptos=intermediate_cryptos,
     )

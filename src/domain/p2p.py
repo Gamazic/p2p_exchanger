@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, NonNegativeFloat, root_validator
+from pydantic import BaseModel, NonNegativeFloat, root_validator
 
 from src.repository.binance_api.models import (AnyPayment,
                                                AnyPaymentWithNotRegistered,
@@ -24,7 +24,7 @@ class P2POrder(BaseModel):
     price: NonNegativeFloat
     amount: NonNegativeFloat
     trade_type: P2PTradeType
-    payments: list[AnyPaymentWithNotRegistered]
+    payments: set[AnyPaymentWithNotRegistered]
     datetime: datetime
 
     @root_validator
@@ -56,7 +56,10 @@ class P2PFilter(BaseModel):
     source_currency: AnyCurrency
     target_currency: AnyCurrency
     min_amount: NonNegativeFloat
-    payments: list[AnyPayment] = Field(unique_items=True)
+    payments: frozenset[AnyPayment]
+
+    class Config:
+        frozen = True
 
     @root_validator
     def check_different_currencies_type(cls, values):

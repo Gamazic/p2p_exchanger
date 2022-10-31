@@ -6,9 +6,8 @@ from src.domain.fiat import (BadP2POrderTypeError, DifferentP2PCryptoError,
                              FiatFixedCryptoFilter, FiatOrder, FiatParams,
                              SameFiatCurrencyError)
 from src.domain.p2p import P2POrder
-from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
-                                               FiatCurrency, KztPayment,
-                                               P2PTradeType,
+from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
+                                               KztPayment, P2PTradeType,
                                                PaymentDoesntMatchCurrencyError,
                                                RuPayment)
 
@@ -17,11 +16,27 @@ class TestFiatParams:
     @pytest.mark.parametrize(
         "currency,payments,is_wrong",
         [
-            (FiatCurrency.RUB, [KztPayment.KaspiBank, KztPayment.KaspiBank], True),
-            (FiatCurrency.RUB, [KztPayment.KaspiBank, RuPayment.RosBankNew], True),
-            (FiatCurrency.RUB, [RuPayment.TinkoffNew, RuPayment.RosBankNew], False),
-            (FiatCurrency.RUB, [RuPayment.RosBankNew, RuPayment.RosBankNew], False),
-            (FiatCurrency.RUB, [], False),
+            (
+                FiatCurrency.RUB,
+                frozenset([KztPayment.KaspiBank, KztPayment.KaspiBank]),
+                True,
+            ),
+            (
+                FiatCurrency.RUB,
+                frozenset([KztPayment.KaspiBank, RuPayment.RosBankNew]),
+                True,
+            ),
+            (
+                FiatCurrency.RUB,
+                frozenset([RuPayment.TinkoffNew, RuPayment.RosBankNew]),
+                False,
+            ),
+            (
+                FiatCurrency.RUB,
+                frozenset([RuPayment.RosBankNew, RuPayment.RosBankNew]),
+                False,
+            ),
+            (FiatCurrency.RUB, frozenset([]), False),
         ],
     )
     def test(self, currency, payments, is_wrong):
@@ -36,10 +51,10 @@ class TestFiatFixedCryptoFilter:
     def test_correct(self):
         FiatFixedCryptoFilter(
             source_params=FiatParams(
-                currency=FiatCurrency.RUB, min_amount=0, payments=[]
+                currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
             ),
             target_params=FiatParams(
-                currency=FiatCurrency.KZT, min_amount=0, payments=[]
+                currency=FiatCurrency.KZT, min_amount=0, payments=frozenset([])
             ),
             intermediate_crypto=CryptoCurrency.USDT,
         )
@@ -48,10 +63,10 @@ class TestFiatFixedCryptoFilter:
         with pytest.raises(SameFiatCurrencyError):
             FiatFixedCryptoFilter(
                 source_params=FiatParams(
-                    currency=FiatCurrency.RUB, min_amount=0, payments=[]
+                    currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
                 ),
                 target_params=FiatParams(
-                    currency=FiatCurrency.RUB, min_amount=0, payments=[]
+                    currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
                 ),
                 intermediate_crypto=CryptoCurrency.USDT,
             )
@@ -66,7 +81,7 @@ class TestFiatOrder:
                 price=50,
                 amount=100,
                 trade_type=P2PTradeType.BUY,
-                payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
+                payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
                 datetime=datetime(2021, 1, 1),
             ),
             target_order=P2POrder(
@@ -75,7 +90,7 @@ class TestFiatOrder:
                 price=100,
                 amount=100,
                 trade_type=P2PTradeType.SELL,
-                payments=[KztPayment.KaspiBank],
+                payments={KztPayment.KaspiBank},
                 datetime=datetime(2021, 1, 1),
             ),
             price=2,
@@ -90,7 +105,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.BUY,
-                    payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
+                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
@@ -99,7 +114,7 @@ class TestFiatOrder:
                     price=100,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments=[RuPayment.TinkoffNew],
+                    payments={RuPayment.TinkoffNew},
                     datetime=datetime(2021, 1, 1),
                 ),
                 price=2,
@@ -114,7 +129,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.BUY,
-                    payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
+                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
@@ -123,7 +138,7 @@ class TestFiatOrder:
                     price=100,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments=[KztPayment.KaspiBank],
+                    payments={KztPayment.KaspiBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 price=2,
@@ -138,7 +153,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments=[RuPayment.TinkoffNew, RuPayment.RaiffeisenBank],
+                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
@@ -147,7 +162,7 @@ class TestFiatOrder:
                     price=100,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments=[KztPayment.KaspiBank],
+                    payments={KztPayment.KaspiBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 price=2,

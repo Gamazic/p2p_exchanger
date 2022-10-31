@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
 
 from src.repository.binance_api.models import (SearchApiParams,
@@ -15,7 +16,7 @@ class P2PBinanceApi:
         self.__client = client
 
     async def search(self, search_params: SearchApiParams) -> SearchApiResponse:
-        json_payload = search_params.dict(by_alias=True, exclude_none=True)
+        json_payload = jsonable_encoder(search_params, by_alias=True, exclude_none=True)
         response = await self.__client.post(self.__URL, json=json_payload)
         if response.status_code != 200:
             raise P2PBinanceApiError("Something wrong with P2PBinanceApi")

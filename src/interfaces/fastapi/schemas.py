@@ -11,7 +11,7 @@ class ExchangeRateInResponse(BaseModel):
     target_currency: FiatCurrency
     exchange_rate: float
     source_amount: NonNegativeFloat
-    source_payments: list[AnyPaymentWithNotRegistered]
-    target_payments: list[AnyPaymentWithNotRegistered]
+    source_payments: set[AnyPaymentWithNotRegistered]
+    target_payments: set[AnyPaymentWithNotRegistered]
     acquisition_time: datetime
     intermediate_crypto: CryptoCurrency
