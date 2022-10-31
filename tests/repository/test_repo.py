@@ -6,7 +6,7 @@ import pytest
 from src.domain.p2p import P2PFilter, P2POrder
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                KztPayment, P2PTradeType,
-                                               RuPayment)
+                                               RubPayment)
 from src.repository.p2p_binance_repo import (CachedP2PBinanceRepo,
                                              P2PBinanceRepo)
 from tests.repository.test_models import (EXAMPLE_2_SEARCH_API_ARG,
@@ -35,7 +35,7 @@ EXAMPLE_P2PRepo_FIND_FILTER_RUB = P2PFilter(
     source_currency=FiatCurrency.RUB,
     target_currency=CryptoCurrency.USDT,
     min_amount=0,
-    payments=frozenset({RuPayment.TinkoffNew}),
+    payments=frozenset({RubPayment.TinkoffNew}),
 )
 EXAMPLE_P2PRepo_FIND_RETURN_RUB = P2POrder(
     source_currency=FiatCurrency.RUB,
@@ -43,7 +43,7 @@ EXAMPLE_P2PRepo_FIND_RETURN_RUB = P2POrder(
     price=61.82,
     amount=5001.0,
     trade_type=P2PTradeType.BUY,
-    payments={RuPayment.TinkoffNew},
+    payments={RubPayment.TinkoffNew},
     datetime=datetime.now(),
 )
 
@@ -69,7 +69,7 @@ EXAMPLE_2_P2PRepo_FIND_FILTER_RUB = P2PFilter(
     source_currency=FiatCurrency.RUB,
     target_currency=CryptoCurrency.BTC,
     min_amount=0,
-    payments=frozenset({RuPayment.TinkoffNew}),
+    payments=frozenset({RubPayment.TinkoffNew}),
 )
 EXAMPLE_2_P2PRepo_FIND_RETURN_RUB = P2POrder(
     source_currency=FiatCurrency.RUB,
@@ -77,7 +77,7 @@ EXAMPLE_2_P2PRepo_FIND_RETURN_RUB = P2POrder(
     price=228,
     amount=5001.0,
     trade_type=P2PTradeType.BUY,
-    payments={RuPayment.TinkoffNew},
+    payments={RubPayment.TinkoffNew},
     datetime=datetime.now(),
 )
 

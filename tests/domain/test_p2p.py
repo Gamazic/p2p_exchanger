@@ -7,7 +7,7 @@ from src.domain.p2p import (P2PFilter, P2POrder, P2PSameCurrencyTypeError,
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                KztPayment, P2PTradeType,
                                                PaymentDoesntMatchCurrencyError,
-                                               RuPayment)
+                                               RubPayment)
 
 
 class TestP2POrder:
@@ -97,7 +97,7 @@ class TestP2PFilter:
             source_currency=FiatCurrency.RUB,
             target_currency=CryptoCurrency.USDT,
             min_amount=0,
-            payments=frozenset({RuPayment.TinkoffNew, RuPayment.RaiffeisenBank}),
+            payments=frozenset({RubPayment.TinkoffNew, RubPayment.RaiffeisenBank}),
         )
         P2PFilter(
             source_currency=CryptoCurrency.USDT,

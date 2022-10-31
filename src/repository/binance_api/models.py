@@ -14,6 +14,8 @@ class Country(StrEnum):
 class FiatCurrency(StrEnum):
     KZT = auto()
     RUB = auto()
+    TRY = auto()
+    GEL = auto()
 
 
 class CryptoCurrency(StrEnum):
@@ -35,7 +37,7 @@ class PaymentBase(StrEnum):
         raise NotImplementedError()
 
 
-class RuPayment(PaymentBase):
+class RubPayment(PaymentBase):
     QIWI = auto()
     ABank = auto()
     Payeer = auto()
@@ -84,6 +86,28 @@ class KztPayment(PaymentBase):
             raise PaymentDoesntMatchCurrencyError
 
 
+class TryPayment(PaymentBase):
+    Ziraat = auto()
+    BANK = auto()
+    QNB = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.TRY:
+            raise PaymentDoesntMatchCurrencyError
+
+
+class GelPayment(PaymentBase):
+    BankofGeorgia = auto()
+    LIBERTYBANK = auto()
+    TBCbank = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.GEL:
+            raise PaymentDoesntMatchCurrencyError
+
+
 class NonRegisteredPayment(PaymentBase):
     UnknownPayment = auto()
 
@@ -92,8 +116,8 @@ class NonRegisteredPayment(PaymentBase):
         return
 
 
-AnyPayment = RuPayment | KztPayment
-AnyPaymentWithNotRegistered = RuPayment | KztPayment | NonRegisteredPayment
+AnyPayment = RubPayment | KztPayment | TryPayment | GelPayment
+AnyPaymentWithNotRegistered = RubPayment | KztPayment | TryPayment | GelPayment | NonRegisteredPayment
 
 
 class P2PTradeType(StrEnum):

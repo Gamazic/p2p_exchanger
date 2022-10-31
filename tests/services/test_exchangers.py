@@ -7,7 +7,7 @@ from src.domain.fiat import (FiatAnyCryptoFilter, FiatFixedCryptoFilter,
 from src.domain.p2p import P2POrder
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                KztPayment, P2PTradeType,
-                                               RuPayment)
+                                               RubPayment)
 from src.services.exchangers import (FiatAnyCryptoExchangerService,
                                      FiatFixedCryptoExchangerService,
                                      P2PExchangerService)
@@ -35,7 +35,7 @@ EXAMPLE_FiatExchanger_USDT_FIND_FILTER = FiatFixedCryptoFilter(
     source_params=FiatParams(
         currency=FiatCurrency.RUB,
         min_amount=0,
-        payments=frozenset({RuPayment.TinkoffNew}),
+        payments=frozenset({RubPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
         currency=FiatCurrency.KZT,
@@ -48,7 +48,7 @@ EXAMPLE_FiatExchanger_BTC_FIND_FILTER = FiatFixedCryptoFilter(
     source_params=FiatParams(
         currency=FiatCurrency.RUB,
         min_amount=0,
-        payments=frozenset({RuPayment.TinkoffNew}),
+        payments=frozenset({RubPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
         currency=FiatCurrency.KZT,
@@ -69,7 +69,7 @@ EXAMPLE_FiatExchanger_BTC_FIND_RETURN = FiatOrder(
         price=30.12,
         amount=5001.0,
         trade_type=P2PTradeType.BUY,
-        payments={RuPayment.TinkoffNew},
+        payments={RubPayment.TinkoffNew},
         datetime=datetime.now(),
     ),
     target_order=P2POrder(
@@ -113,7 +113,7 @@ EXAMPLE_FiatAnyCryptoExchanger_FIND_FILTER = FiatAnyCryptoFilter(
     source_params=FiatParams(
         currency=FiatCurrency.RUB,
         min_amount=0,
-        payments=frozenset({RuPayment.TinkoffNew}),
+        payments=frozenset({RubPayment.TinkoffNew}),
     ),
     target_params=FiatParams(
         currency=FiatCurrency.KZT,

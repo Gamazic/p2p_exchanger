@@ -6,7 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from src.repository.binance_api.models import (AdvertiserSearchApi,
                                                AdvSearchApi, CryptoCurrency,
                                                FiatCurrency, P2POrderSearchApi,
-                                               P2PTradeType, RuPayment,
+                                               P2PTradeType, RubPayment,
                                                SearchApiParams,
                                                SearchApiResponse, TradeMethod)
 
@@ -27,7 +27,7 @@ EXAMPLE_SEARCH_API_ARG = SearchApiParams(
     pro_merchant_ads=None,
     page=1,
     rows=10,
-    pay_types=frozenset({RuPayment.TinkoffNew}),
+    pay_types=frozenset({RubPayment.TinkoffNew}),
     countries=frozenset(),
     publisher_type=None,
     asset=CryptoCurrency.USDT,
@@ -278,7 +278,7 @@ EXAMPLE_SEARCH_API_RETURN = SearchApiResponse(
                 max_single_trans_amount=5001.0,
                 min_single_trans_amount=5000.0,
                 price=61.82,
-                trade_methods=[TradeMethod(identifier=RuPayment.TinkoffNew)],
+                trade_methods=[TradeMethod(identifier=RubPayment.TinkoffNew)],
             ),
             advertiser=AdvertiserSearchApi(
                 nick_name="Kripto-Monah",

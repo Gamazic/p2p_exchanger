@@ -1,19 +1,27 @@
 from enum import Enum
 
-RU_PAYMENTS = ["TinkoffNew", "QIWI", "Payeer"]
-KZT_PAYMENTS = ["KaspiBank"]
+RUB_PAYMENTS = ["TinkoffNew", "QIWI", "Payeer"]
+KZT_PAYMENTS = ["KaspiBank", "QIWI", "JysanBank"]
+TRY_PAYMENTS = ["Ziraat", "BANK", "QNB"]
+GEL_PAYMENTS = ["BankofGeorgia", "LIBERTYBANK", "TBCbank"]
 
 
 class FiatCurrency(Enum):
     RUB = "RUB"
     KZT = "KZT"
+    TRY = "TRY"
+    GEL = "GEL"
 
 
 class CryptoCurrency(Enum):
     USDT = "USDT"
+    ETH = "ETH"
+    BTC = "BTC"
 
 
 PAYMENTS_CASE = {
-    FiatCurrency.RUB.value: RU_PAYMENTS,
+    FiatCurrency.RUB.value: RUB_PAYMENTS,
     FiatCurrency.KZT.value: KZT_PAYMENTS,
+    FiatCurrency.TRY.value: TRY_PAYMENTS,
+    FiatCurrency.GEL.value: GEL_PAYMENTS
 }

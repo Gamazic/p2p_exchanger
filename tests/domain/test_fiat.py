@@ -9,7 +9,7 @@ from src.domain.p2p import P2POrder
 from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
                                                KztPayment, P2PTradeType,
                                                PaymentDoesntMatchCurrencyError,
-                                               RuPayment)
+                                               RubPayment)
 
 
 class TestFiatParams:
@@ -23,17 +23,17 @@ class TestFiatParams:
             ),
             (
                 FiatCurrency.RUB,
-                frozenset([KztPayment.KaspiBank, RuPayment.RosBankNew]),
+                frozenset([KztPayment.KaspiBank, RubPayment.RosBankNew]),
                 True,
             ),
             (
                 FiatCurrency.RUB,
-                frozenset([RuPayment.TinkoffNew, RuPayment.RosBankNew]),
+                frozenset([RubPayment.TinkoffNew, RubPayment.RosBankNew]),
                 False,
             ),
             (
                 FiatCurrency.RUB,
-                frozenset([RuPayment.RosBankNew, RuPayment.RosBankNew]),
+                frozenset([RubPayment.RosBankNew, RubPayment.RosBankNew]),
                 False,
             ),
             (FiatCurrency.RUB, frozenset([]), False),
@@ -81,7 +81,7 @@ class TestFiatOrder:
                 price=50,
                 amount=100,
                 trade_type=P2PTradeType.BUY,
-                payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
+                payments={RubPayment.TinkoffNew, RubPayment.RaiffeisenBank},
                 datetime=datetime(2021, 1, 1),
             ),
             target_order=P2POrder(
@@ -105,7 +105,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.BUY,
-                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
+                    payments={RubPayment.TinkoffNew, RubPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
@@ -114,7 +114,7 @@ class TestFiatOrder:
                     price=100,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments={RuPayment.TinkoffNew},
+                    payments={RubPayment.TinkoffNew},
                     datetime=datetime(2021, 1, 1),
                 ),
                 price=2,
@@ -129,7 +129,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.BUY,
-                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
+                    payments={RubPayment.TinkoffNew, RubPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
@@ -153,7 +153,7 @@ class TestFiatOrder:
                     price=50,
                     amount=100,
                     trade_type=P2PTradeType.SELL,
-                    payments={RuPayment.TinkoffNew, RuPayment.RaiffeisenBank},
+                    payments={RubPayment.TinkoffNew, RubPayment.RaiffeisenBank},
                     datetime=datetime(2021, 1, 1),
                 ),
                 target_order=P2POrder(
