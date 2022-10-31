@@ -23,5 +23,5 @@ PAYMENTS_CASE = {
     FiatCurrency.RUB.value: RUB_PAYMENTS,
     FiatCurrency.KZT.value: KZT_PAYMENTS,
     FiatCurrency.TRY.value: TRY_PAYMENTS,
-    FiatCurrency.GEL.value: GEL_PAYMENTS
+    FiatCurrency.GEL.value: GEL_PAYMENTS,
 }

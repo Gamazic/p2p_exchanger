@@ -3,7 +3,6 @@ from collections import defaultdict
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ParseMode
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.kbd import Back, Group, Next, Row
 from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi
 
 from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
@@ -12,8 +11,9 @@ from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
 from src.interfaces.aiogram.widgets import (MultiselectRelatedPayment,
                                             SelectFromEnum)
 from src.interfaces.fastapi.container import (AsyncClient,
+                                              CachedP2PBinanceRepo,
                                               FiatFixedCryptoExchangerService,
-                                              P2PBinanceApi, CachedP2PBinanceRepo,
+                                              P2PBinanceApi,
                                               P2PExchangerService)
 
 client = AsyncClient()
@@ -112,15 +112,12 @@ crypto_dialog = Dialog(
         Multi(
             Format("Выберите способы оплаты для *{source_currency}*"), dialog_template
         ),
-        Group(
-            MultiselectRelatedPayment(
-                Format("✓ {item}"),
-                Format("{item}"),
-                items=PAYMENTS_CASE,
-                widget_id="source_payments",
-                related_select_id="source_currency",
-            ),
-            Next(),
+        MultiselectRelatedPayment(
+            Format("✓ {item}"),
+            Format("{item}"),
+            items=PAYMENTS_CASE,
+            widget_id="source_payments",
+            related_select_id="source_currency",
         ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.source_payments,
@@ -128,26 +125,23 @@ crypto_dialog = Dialog(
     ),
     Window(
         Multi(Const("Выберите целевую валюта"), dialog_template),
-            SelectFromEnum(
-                FiatCurrency,
-                "target_currency",
-                exclude_button_from_id="source_currency",
-            ),
+        SelectFromEnum(
+            FiatCurrency,
+            "target_currency",
+            exclude_button_from_id="source_currency",
+        ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_currency,
         getter=get_data,
     ),
     Window(
         Multi(Format("Выберите способ оплаты для {target_currency}"), dialog_template),
-        Group(
-            MultiselectRelatedPayment(
-                Format("✓ {item}"),
-                Format("{item}"),
-                items=PAYMENTS_CASE,
-                widget_id="target_payments",
-                related_select_id="target_currency",
-            ),
-            Next(),
+        MultiselectRelatedPayment(
+            Format("✓ {item}"),
+            Format("{item}"),
+            items=PAYMENTS_CASE,
+            widget_id="target_payments",
+            related_select_id="target_currency",
         ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.target_payments,

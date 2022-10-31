@@ -1,9 +1,9 @@
 from enum import Enum
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.kbd import Multiselect, Select
-from aiogram_dialog.widgets.text import Format, Text
+from aiogram_dialog.widgets.kbd import Group, Multiselect, Next, Select
+from aiogram_dialog.widgets.text import Case, Const, Format, Text
 
 
 class SelectFromEnum(Select):
@@ -46,6 +46,37 @@ class MultiselectRelatedPayment(Multiselect):
         self.__items = items
         self.__id = widget_id
 
+        next_button_text = Case(
+            {"empty": Const("Любой, далее"), "selected": Const("Далее")},
+            selector=self.__selector,
+        )
+        self.__next_button = Next(next_button_text)
+
     def __items_getter(self, data: dict):
         related_data_selector = data["dialog_data"].get(self.__related_select_id)
         return self.__items[related_data_selector]
+
+    async def render_keyboard(
+        self,
+        data: dict,
+        manager: DialogManager,
+    ) -> list[list[InlineKeyboardButton]]:
+        keyboard = await super().render_keyboard(data, manager)
+        keyboard += await self.__next_button.render_keyboard(data, manager)
+        return keyboard
+
+    def __selector(self, data: dict, case: Case, manager: DialogManager):
+        if data.get(self.__id):
+            return "selected"
+        else:
+            return "empty"
+
+    async def _process_other_callback(
+        self,
+        c,
+        dialog,
+        manager,
+    ):
+        if await self.__next_button.process_callback(c, dialog, manager):
+            return True
+        return False
