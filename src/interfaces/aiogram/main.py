@@ -26,7 +26,8 @@ registry.register(crypto_dialog)
 
 @dp.message_handler(commands=["start"])
 async def start(m: Message, dialog_manager: DialogManager):
-    await m.answer("Hi! This is exchanger bot. Use /exchange command and try it!")
+    await m.answer("Привет! Я покажу тебе по какому курсу можно обменять валюты через P2P сделки.\n"
+                   "Чтобы опробовать мой функционал введи /exchange")
 
 
 @dp.message_handler(commands=["exchange"])
