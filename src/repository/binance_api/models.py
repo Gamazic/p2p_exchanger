@@ -67,7 +67,8 @@ class RubPayment(PaymentBase):
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.RUB:
-            raise PaymentDoesntMatchCurrencyError
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.RUB} doesn't match"
+                                                  f"{currency} currency")
 
 
 class KztPayment(PaymentBase):
@@ -83,7 +84,8 @@ class KztPayment(PaymentBase):
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.KZT:
-            raise PaymentDoesntMatchCurrencyError
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.KZT} doesn't match"
+                                                  f"{currency} currency")
 
 
 class TryPayment(PaymentBase):
@@ -94,7 +96,8 @@ class TryPayment(PaymentBase):
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.TRY:
-            raise PaymentDoesntMatchCurrencyError
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.TRY} doesn't match"
+                                                  f"{currency} currency")
 
 
 class GelPayment(PaymentBase):
@@ -105,7 +108,8 @@ class GelPayment(PaymentBase):
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.GEL:
-            raise PaymentDoesntMatchCurrencyError
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match"
+                                                  f" {FiatCurrency.GEL} payments")
 
 
 class NonRegisteredPayment(PaymentBase):
