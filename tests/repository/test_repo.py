@@ -109,6 +109,7 @@ class TestCachedP2PRepo:
         return ApiStub()
 
     async def test_find(self, p2p_binance_api):
+        CachedP2PBinanceRepo.TTL = 0.5
         repo = CachedP2PBinanceRepo(p2p_binance_api)
 
         exec_start = datetime.now()
