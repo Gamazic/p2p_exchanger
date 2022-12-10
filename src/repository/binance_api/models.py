@@ -172,9 +172,9 @@ class AdvertiserSearchApi(CamelModel):
     nick_name: str
     month_finish_rate: float = Field(ge=0, le=1)
     month_order_count: NonNegativeInt
-    user_grade: NonNegativeInt
-    user_type: Literal["user", "merchant"]
-    user_identity: Literal["MASS_MERCHANT", ""]
+    user_grade: NonNegativeInt | None  # Only once it was None
+    user_type: Literal["user", "merchant"] | None  # Only once it was None
+    user_identity: Literal["MASS_MERCHANT", ""] | None  # Only once it was None
 
 
 class P2POrderSearchApi(CamelModel):
