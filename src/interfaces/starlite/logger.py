@@ -1,4 +1,5 @@
 import logging
+from uuid import uuid4
 
 import httpx
 from starlite import LoggingConfig
@@ -17,13 +18,16 @@ def logging_exception_handler(_, exc: Exception) -> Response:
 
 
 async def log_request(request: httpx.Request):
+    request_id = str(uuid4())
+    request.headers["X-Request-ID"] = request_id
     print(
-        f"HTTPX request | {request.method} {request.url} | CONTENT: {request.content!r}"
+        f"HTTPX request | ID {request_id} | {request.method} {request.url} | CONTENT: {request.content!r}"
     )
 
 
 async def log_response(response: httpx.Response):
     request = response.request
+    request_id = request.headers["X-Request-ID"]
     print(
-        f"HTTPX response | {request.method} {request.url} | STATUS {response.status_code}"
+        f"HTTPX response | ID {request_id} | {request.method} {request.url} | STATUS {response.status_code}"
     )
