@@ -1,5 +1,5 @@
 from pydantic import NonNegativeFloat
-from starlite import Controller, Parameter, get, Dependency
+from starlite import Controller, Dependency, Parameter, get
 
 from src.domain.fiat import FiatAnyCryptoFilter, FiatParams
 from src.interfaces.starlite.models import ExchangeRateInResponse
@@ -13,14 +13,14 @@ class ExchangeRateController(Controller):
 
     @get()
     async def get_best_exchange_rate(
-            self,
-            source_currency: FiatCurrency,
-            target_currency: FiatCurrency,
-            intermediate_cryptos: list[CryptoCurrency] = Parameter(default=()),
-            min_amount: NonNegativeFloat = Parameter(default=0),
-            source_payments: list[AnyPayment] = Parameter(default=()),
-            target_payments: list[AnyPayment] = Parameter(default=()),
-            exchanger_service: FiatAnyCryptoExchangerService = Dependency()
+        self,
+        source_currency: FiatCurrency,
+        target_currency: FiatCurrency,
+        intermediate_cryptos: list[CryptoCurrency] = Parameter(default=()),
+        min_amount: NonNegativeFloat = Parameter(default=0),
+        source_payments: list[AnyPayment] = Parameter(default=()),
+        target_payments: list[AnyPayment] = Parameter(default=()),
+        exchanger_service: FiatAnyCryptoExchangerService = Dependency(),
     ) -> ExchangeRateInResponse:
         filter = FiatAnyCryptoFilter(
             source_params=FiatParams(
@@ -29,7 +29,9 @@ class ExchangeRateController(Controller):
                 payments=frozenset(source_payments),
             ),
             target_params=FiatParams(
-                currency=target_currency, min_amount=0, payments=frozenset(target_payments)
+                currency=target_currency,
+                min_amount=0,
+                payments=frozenset(target_payments),
             ),
             intermediate_cryptos=intermediate_cryptos,
         )

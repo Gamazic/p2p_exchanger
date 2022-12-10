@@ -1,14 +1,13 @@
+from starlite import Provide, Starlite
 from starlite.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
-from starlite import Starlite, Provide
 
 from src.interfaces.starlite.container import get_exchanger
 from src.interfaces.starlite.controllers import ExchangeRateController
-from src.interfaces.starlite.logger import logging_config, logging_middleware_config, logging_exception_handler
+from src.interfaces.starlite.logger import (logging_config,
+                                            logging_exception_handler,
+                                            logging_middleware_config)
 
-
-dependencies = {
-    "exchanger_service": Provide(get_exchanger)
-}
+dependencies = {"exchanger_service": Provide(get_exchanger)}
 
 app = Starlite(
     route_handlers=[ExchangeRateController],
@@ -16,7 +15,7 @@ app = Starlite(
     logging_config=logging_config,
     middleware=[logging_middleware_config.middleware],
     exception_handlers={HTTP_500_INTERNAL_SERVER_ERROR: logging_exception_handler},
-    debug=False
+    debug=False,
 )
 
 if __name__ == "__main__":
