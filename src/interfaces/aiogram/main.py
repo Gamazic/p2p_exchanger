@@ -3,7 +3,6 @@ from functools import partial
 import typer
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-# from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram_dialog import DialogRegistry
 
 from src.interfaces.aiogram.config import TG_TOKEN, BotWebhookConfig

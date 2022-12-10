@@ -2,7 +2,7 @@ from enum import Enum
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.kbd import Group, Multiselect, Next, Select
+from aiogram_dialog.widgets.kbd import Multiselect, Next, Select
 from aiogram_dialog.widgets.text import Case, Const, Format, Text
 
 
