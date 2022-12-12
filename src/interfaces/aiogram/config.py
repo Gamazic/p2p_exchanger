@@ -3,7 +3,7 @@ import os
 from pydantic import AnyHttpUrl, BaseSettings, PositiveInt
 
 
-class BotWebhookConfig(BaseSettings):
+class BotWebhookSettings(BaseSettings):
     WEBHOOK_HOST: AnyHttpUrl
     WEBHOOK_PATH: str
 
@@ -11,4 +11,6 @@ class BotWebhookConfig(BaseSettings):
     WEBAPP_HOST: str
 
 
-TG_TOKEN = os.environ.get("TG_TOKEN")
+class AppSettings(BaseSettings):
+    TG_TOKEN: str
+    EXCHANGER_API_URL: str

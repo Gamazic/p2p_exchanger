@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram_dialog import DialogRegistry
 
-from src.interfaces.aiogram.config import TG_TOKEN, BotWebhookConfig
+from src.interfaces.aiogram.config import AppSettings, BotWebhookSettings
 from src.interfaces.aiogram.dialog import crypto_dialog
 from src.interfaces.aiogram.handlers import exchange, help, start
 from src.interfaces.aiogram.middlewares import CustomLoggingMiddleware
@@ -20,7 +20,7 @@ def start_polling():
 def start_webhook():
     bot = configure_bot()
     dp = configure_dp(bot)
-    webhook_config = BotWebhookConfig()
+    webhook_config = BotWebhookSettings()
     on_startup = partial(on_webhook_startup, webhook_config=webhook_config, bot=bot)
     executor.start_webhook(
         dispatcher=dp,
@@ -33,7 +33,7 @@ def start_webhook():
 
 
 def configure_bot():
-    bot = Bot(token=TG_TOKEN)
+    bot = Bot(token=AppSettings().TG_TOKEN)
     return bot
 
 
@@ -53,7 +53,7 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(exchange, commands=["exchange"])
 
 
-async def on_webhook_startup(app, webhook_config: BotWebhookConfig, bot: Bot):
+async def on_webhook_startup(app, webhook_config: BotWebhookSettings, bot: Bot):
     webhook = await bot.get_webhook_info()
     webhook_url = f"{webhook_config.WEBHOOK_HOST}{webhook_config.WEBHOOK_PATH}"
     if webhook.url != webhook_url:

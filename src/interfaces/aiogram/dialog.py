@@ -4,21 +4,18 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ParseMode
 from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi
+from httpx import AsyncClient
 
-from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
-from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
+from src.interfaces.aiogram.config import AppSettings
+from src.interfaces.aiogram.models import (PAYMENTS_CASE,
                                            FiatCurrency)
+from src.interfaces.aiogram.remote_service import (ExchangerService,
+                                                   SearchFilter)
 from src.interfaces.aiogram.widgets import (MultiselectRelatedPayment,
                                             SelectFromEnum)
-from src.interfaces.fastapi.container import (AsyncClient,
-                                              CachedP2PBinanceRepo,
-                                              FiatFixedCryptoExchangerService,
-                                              P2PBinanceApi,
-                                              P2PExchangerService)
 
-client = AsyncClient()
-exchanger_service = FiatFixedCryptoExchangerService(
-    P2PExchangerService(CachedP2PBinanceRepo(P2PBinanceApi(client)))
+exchanger_service = ExchangerService(
+    AsyncClient(base_url=AppSettings().EXCHANGER_API_URL)
 )
 
 
@@ -42,31 +39,29 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def get_result(dialog_manager: DialogManager, **kwargs):
     data = await get_data(dialog_manager, **kwargs)
-    filter = FiatFixedCryptoFilter.parse_obj(
-        dict(
-            source_params=FiatParams.parse_obj(
-                dict(
-                    currency=data["source_currency"],
-                    min_amount=0,
-                    payments=set(data["source_payments"]),
-                )
-            ),
-            target_params=FiatParams.parse_obj(
-                dict(
-                    currency=data["target_currency"],
-                    min_amount=0,
-                    payments=set(data["target_payments"]),
-                )
-            ),
-            intermediate_crypto=CryptoCurrency.USDT.value,
-        )
+    source_currency = data["source_currency"]
+    target_currency = data["target_currency"]
+    # search_filter = {
+    #     "source_currency": source_currency,
+    #     "target_currency": target_currency,
+    #     "intermediate_cryptos": [],
+    #     "min_amount": 0,
+    #     "source_payments": data["source_payments"],
+    #     "target_payments": data["target_payments"],
+    # }
+    search_filter = SearchFilter(
+        source_currency=source_currency,
+        target_currency=target_currency,
+        intermediate_cryptos=[],
+        min_amount=0,
+        source_payments=data["source_payments"],
+        target_payments=data["target_payments"],
     )
-    fiat_order = await exchanger_service.find_best_price(filter)
-    best_crypto = fiat_order.source_order.target_currency.value
-    source_currency = fiat_order.source_order.source_currency
-    target_currency = fiat_order.target_order.target_currency
-    first_source_payment = next(iter(fiat_order.source_order.payments), "all-payments")
-    first_target_payment = next(iter(fiat_order.target_order.payments), "ALL")
+    best_order = await exchanger_service.get_best_exchange_rate(search_filter)
+    # fiat_order = await exchanger_service.find_best_price(filter)
+    best_crypto = best_order["intermediate_crypto"]
+    first_source_payment = next(iter(best_order["source_payments"]), "all-payments")
+    first_target_payment = next(iter(best_order["target_payments"]), "ALL")
     source_order_url = (
         f"https://p2p.binance.com/ru/trade/{first_source_payment}/"
         f"{best_crypto}?fiat="
@@ -77,7 +72,7 @@ async def get_result(dialog_manager: DialogManager, **kwargs):
         f"{best_crypto}?fiat={target_currency}&payment={first_target_payment}"
     )
     return {
-        "price": fiat_order.price,
+        "price": best_order["exchange_rate"],
         "crypto": best_crypto,
         "source_order_url": source_order_url,
         "target_order_url": target_order_url,

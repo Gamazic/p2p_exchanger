@@ -14,7 +14,9 @@ class CustomLoggingMiddleware(BaseMiddleware):
             f"{self.__message_log_text(message)}"
         )
 
-    async def on_post_process_message(self, message: types.Message, results, data: dict):
+    async def on_post_process_message(
+        self, message: types.Message, results, data: dict
+    ):
         logger.info(
             f"SENT, CONTENT [{message.text}], {self.__message_log_text(message)}"
         )
@@ -23,16 +25,20 @@ class CustomLoggingMiddleware(BaseMiddleware):
         message = update.message
         if message is None:
             message = update.callback_query.message
-        logger.info(f"UPDATE [ID:{update.update_id}], {self.__message_log_text(message)}")
+        logger.info(
+            f"UPDATE [ID:{update.update_id}], {self.__message_log_text(message)}"
+        )
 
     def __message_log_text(self, message: types.Message) -> str:
-        return f"MESSAGE [{message.message_id}], " \
-               f"CHAT [{message.chat.type}:{message.chat.id}], " \
-               f"USER [{message.from_user.id}]"
+        return (
+            f"MESSAGE [{message.message_id}], "
+            f"CHAT [{message.chat.type}:{message.chat.id}], "
+            f"USER [{message.from_user.id}]"
+        )
 
     def __check_timeout(self, obj):
-        start = obj.conf.get('_start', None)
+        start = obj.conf.get("_start", None)
         if start:
-            del obj.conf['_start']
+            del obj.conf["_start"]
             return round((time.time() - start) * 1000)
         return -1
