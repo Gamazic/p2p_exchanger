@@ -2,7 +2,7 @@ from enum import Enum
 
 RUB_PAYMENTS = ["TinkoffNew", "QIWI", "Payeer"]
 KZT_PAYMENTS = ["KaspiBank", "JysanBank"]
-TRY_PAYMENTS = ["Ziraat", "BANK", "QNB"]
+TRY_PAYMENTS = ["Ziraat", "QNB"]
 GEL_PAYMENTS = ["BankofGeorgia", "LIBERTYBANK", "TBCbank"]
 
 
