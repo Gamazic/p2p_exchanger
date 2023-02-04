@@ -1,21 +1,30 @@
 from collections import defaultdict
+from enum import Enum, EnumType
+from typing import Any, Callable
+from functools import partial
 
+from emoji import emojize
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ParseMode
+from aiogram.types import ParseMode, CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi
-from httpx import AsyncClient
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi, Text, Case
+from aiogram_dialog.widgets.kbd import Select, Multiselect, Group, Next
+from aiogram_dialog.widgets.when import Whenable
 
-from src.interfaces.aiogram.config import AppSettings
-from src.interfaces.aiogram.models import (PAYMENTS_CASE,
-                                           FiatCurrency)
-from src.interfaces.aiogram.remote_service import (ExchangerService,
-                                                   SearchFilter)
-from src.interfaces.aiogram.widgets import (MultiselectRelatedPayment,
-                                            SelectFromEnum)
+from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
+from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
+                                           FiatCurrency, Payment)
+from src.interfaces.aiogram.widgets import (RelatedMultiselect, SelectWithExclude)
+from src.interfaces.fastapi.container import (AsyncClient,
+                                              CachedP2PBinanceRepo,
+                                              FiatFixedCryptoExchangerService,
+                                              P2PBinanceApi,
+                                              P2PExchangerService)
 
-exchanger_service = ExchangerService(
-    AsyncClient(base_url=AppSettings().EXCHANGER_API_URL)
+
+client = AsyncClient()
+exchanger_service = FiatFixedCryptoExchangerService(
+    P2PExchangerService(CachedP2PBinanceRepo(P2PBinanceApi(client)))
 )
 
 
@@ -27,41 +36,82 @@ class ExchangerSG(StatesGroup):
     send_request = State()
 
 
-async def get_data(dialog_manager: DialogManager, **kwargs):
-    return defaultdict(
-        None,
-        **(
-            dialog_manager.current_context().dialog_data
-            | dialog_manager.current_context().widget_data
+async def save_on_click(
+    c: CallbackQuery, widget: Any, manager: DialogManager, item_id: str
+):
+    context = manager.current_context()
+    context.dialog_data[widget.widget_id] = item_id
+    await manager.dialog().next()
+
+
+def build_enum_select_widget(enum: EnumType, widget_id: str, exclude_selected_by_id: str | None = None):
+    return SelectWithExclude(
+        Format("{item}"),
+        id=widget_id,
+        item_id_getter=str,
+        items=list(enum),
+        exclude_selected_by_id=exclude_selected_by_id,
+        on_click=save_on_click
+    )
+
+
+def build_related_payments_widget(currency_widget_id: str, payments: dict, widget_id: str):
+    def selector(data, case, manager):
+        selected_data = manager.current_context().widget_data.get(widget_id)
+        return 1 if selected_data else 0
+
+    return Group(
+        Next(
+            Case({0: Const("Любая"), 1: Const("Далее")}, selector=selector)
         ),
+        RelatedMultiselect(
+            Format("✓ {item}"),
+            Format("{item}"),
+            widget_id,
+            str,
+            currency_widget_id,
+            payments,
+        )
     )
 
 
-async def get_result(dialog_manager: DialogManager, **kwargs):
-    data = await get_data(dialog_manager, **kwargs)
-    source_currency = data["source_currency"]
-    target_currency = data["target_currency"]
-    # search_filter = {
-    #     "source_currency": source_currency,
-    #     "target_currency": target_currency,
-    #     "intermediate_cryptos": [],
-    #     "min_amount": 0,
-    #     "source_payments": data["source_payments"],
-    #     "target_payments": data["target_payments"],
-    # }
-    search_filter = SearchFilter(
-        source_currency=source_currency,
-        target_currency=target_currency,
-        intermediate_cryptos=[],
-        min_amount=0,
-        source_payments=data["source_payments"],
-        target_payments=data["target_payments"],
+async def get_dialog_data(dialog_manager: DialogManager, **kwargs):
+    context = dialog_manager.current_context()
+    data = defaultdict(
+        None,
+        **(context.dialog_data | context.widget_data),
     )
-    best_order = await exchanger_service.get_best_exchange_rate(search_filter)
-    # fiat_order = await exchanger_service.find_best_price(filter)
-    best_crypto = best_order["intermediate_crypto"]
-    first_source_payment = next(iter(best_order["source_payments"]), "all-payments")
-    first_target_payment = next(iter(best_order["target_payments"]), "ALL")
+    return data
+
+
+async def get_result(recover_data: Callable, dialog_manager: DialogManager, **kwargs):
+    data = await get_dialog_data(dialog_manager, **kwargs)
+    backend_data = recover_data(data)
+    filter = FiatFixedCryptoFilter.parse_obj(
+        dict(
+            source_params=FiatParams.parse_obj(
+                dict(
+                    currency=backend_data["source_currency"],
+                    min_amount=0,
+                    payments=set(backend_data["source_payments"]),
+                )
+            ),
+            target_params=FiatParams.parse_obj(
+                dict(
+                    currency=backend_data["target_currency"],
+                    min_amount=0,
+                    payments=set(backend_data["target_payments"]),
+                )
+            ),
+            intermediate_crypto=CryptoCurrency.USDT.value,
+        )
+    )
+    fiat_order = await exchanger_service.find_best_price(filter)
+    best_crypto = fiat_order.source_order.target_currency.value
+    source_currency = fiat_order.source_order.source_currency
+    target_currency = fiat_order.target_order.target_currency
+    first_source_payment = next(iter(fiat_order.source_order.payments), "all-payments")
+    first_target_payment = next(iter(fiat_order.target_order.payments), "ALL")
     source_order_url = (
         f"https://p2p.binance.com/ru/trade/{first_source_payment}/"
         f"{best_crypto}?fiat="
@@ -72,13 +122,32 @@ async def get_result(dialog_manager: DialogManager, **kwargs):
         f"{best_crypto}?fiat={target_currency}&payment={first_target_payment}"
     )
     return {
-        "price": best_order["exchange_rate"],
+        "price": fiat_order.price,
         "crypto": best_crypto,
         "source_order_url": source_order_url,
         "target_order_url": target_order_url,
     } | data
 
 
+def recover_payments(data: dict):
+    keys = {
+        "source_currency": "source_payments",
+        "target_currency": "target_payments"
+    }
+    copied_data = data.copy()
+    for currency_key, payments_key in keys.items():
+        selected = copied_data[currency_key]
+        payments_map = PAYMENTS_CASE[selected]
+        copied_data[payments_key] = [payments_map[payment] for payment in copied_data[payments_key]]
+    return copied_data
+
+
+
+source_currency_widget = build_enum_select_widget(FiatCurrency, "source_currency")
+source_payments_widget = build_related_payments_widget("source_currency", PAYMENTS_CASE, "source_payments")
+target_currency_widget = build_enum_select_widget(FiatCurrency, "target_currency",
+                                                  exclude_selected_by_id="source_currency")
+target_payments_widget = build_related_payments_widget("target_currency", PAYMENTS_CASE, "target_payments")
 dialog_template = Jinja(
     """
 {% if source_currency %}
@@ -95,55 +164,49 @@ dialog_template = Jinja(
 {% endif %}
 """
 )
-
 crypto_dialog = Dialog(
     Window(
-        Const("Выберите исходную валюту"),
-        SelectFromEnum(FiatCurrency, "source_currency"),
+        Const(emojize(":up-right_arrow: Выберите исходную валюту")),
+        source_currency_widget,
         state=ExchangerSG.source_currency,
         parse_mode=ParseMode.MARKDOWN,
     ),
     Window(
         Multi(
-            Format("Выберите способы оплаты для *{source_currency}*"), dialog_template
+            dialog_template,
+            Format("Выберите способы оплаты для *{source_currency}*"),
+            # dialog_template
         ),
-        MultiselectRelatedPayment(
-            Format("✓ {item}"),
-            Format("{item}"),
-            items=PAYMENTS_CASE,
-            widget_id="source_payments",
-            related_select_id="source_currency",
-        ),
-        parse_mode=ParseMode.MARKDOWN,
+        source_payments_widget,
         state=ExchangerSG.source_payments,
-        getter=get_data,
-    ),
-    Window(
-        Multi(Const("Выберите целевую валюта"), dialog_template),
-        SelectFromEnum(
-            FiatCurrency,
-            "target_currency",
-            exclude_button_from_id="source_currency",
-        ),
         parse_mode=ParseMode.MARKDOWN,
-        state=ExchangerSG.target_currency,
-        getter=get_data,
-    ),
-    Window(
-        Multi(Format("Выберите способ оплаты для {target_currency}"), dialog_template),
-        MultiselectRelatedPayment(
-            Format("✓ {item}"),
-            Format("{item}"),
-            items=PAYMENTS_CASE,
-            widget_id="target_payments",
-            related_select_id="target_currency",
-        ),
-        parse_mode=ParseMode.MARKDOWN,
-        state=ExchangerSG.target_payments,
-        getter=get_data,
+        getter=get_dialog_data
     ),
     Window(
         Multi(
+            dialog_template,
+            Const(emojize(":down-right_arrow: Выберите целевую валюта")),
+            # dialog_template
+        ),
+        target_currency_widget,
+        state=ExchangerSG.target_currency,
+        parse_mode=ParseMode.MARKDOWN,
+        getter=get_dialog_data
+    ),
+    Window(
+        Multi(
+            dialog_template,
+            Format("Выберите способ оплаты для {target_currency}"),
+            # dialog_template
+        ),
+        target_payments_widget,
+        state=ExchangerSG.target_payments,
+        parse_mode=ParseMode.MARKDOWN,
+        getter=get_dialog_data
+    ),
+    Window(
+        Multi(
+            # dialog_template,
             Format("Курс обмена: *{price:.2f}*"),
             dialog_template,
             Format(
@@ -154,8 +217,8 @@ crypto_dialog = Dialog(
         ),
         parse_mode=ParseMode.MARKDOWN,
         state=ExchangerSG.send_request,
-        getter=get_result,
+        getter=partial(get_result, recover_payments),
         preview_data={},
         disable_web_page_preview=True,
-    ),
+        )
 )

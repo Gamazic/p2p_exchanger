@@ -16,7 +16,7 @@ class FiatParams(BaseModel):
 
     @root_validator
     def check_payments_match_currency(cls, values):
-        for payment in values["payments"]:
+        for payment in values.get("payments"):
             payment.validate_currency(values["currency"])
         return values
 

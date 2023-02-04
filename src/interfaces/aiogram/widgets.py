@@ -1,82 +1,57 @@
-from enum import Enum
+from typing import Callable, Iterable
 
-from aiogram.types import CallbackQuery, InlineKeyboardButton
-from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.kbd import Multiselect, Next, Select
-from aiogram_dialog.widgets.text import Case, Const, Format, Text
+from aiogram_dialog.widgets.kbd import Multiselect, Select
+from aiogram_dialog.widgets.text import Text
 
 
-class SelectFromEnum(Select):
+class RelatedMultiselect(Multiselect):
     def __init__(
-        self, enum: Enum, widget_id: str, exclude_button_from_id: str | None = None
+            self, checked_text: Text, unchecked_text: Text, id: str,
+            item_id_getter: Callable,
+            related_widget_id: str, items: dict,
+            min_selected: int = 0, max_selected: int = 0,
+            on_click=None,
+            on_state_changed=None,
+            when=None
     ):
-        text = Format("{item}")
-        items = [e.value for e in enum]
-        super().__init__(text, widget_id, str, items, self.__on_click)
+        super().__init__(checked_text, unchecked_text, id,
+                         item_id_getter, items,
+                         min_selected=min_selected, max_selected=max_selected,
+                         on_click=on_click,
+                         on_state_changed=on_state_changed,
+                         when=when)
 
         self.items_getter = self.__items_getter
+        self.__related_widget_id = related_widget_id
         self.__items = items
-        self.__id = widget_id
-        self.__exclude_button_from_id = exclude_button_from_id
 
     def __items_getter(self, data: dict):
-        exclude_data = data["dialog_data"].get(self.__exclude_button_from_id, None)
-        return (item for item in self.__items if item != exclude_data)
-
-    async def __on_click(
-        self, call: CallbackQuery, select, manager: DialogManager, item: str
-    ):
-        manager.current_context().dialog_data[self.__id] = item
-        await manager.dialog().next()
-
-
-class MultiselectRelatedPayment(Multiselect):
-    def __init__(
-        self,
-        checked_text: Text,
-        unchecked_text: Text,
-        items: dict,
-        widget_id: str,
-        related_select_id: str,
-    ):
-        super().__init__(checked_text, unchecked_text, widget_id, str, items)
-
-        self.__related_select_id = related_select_id
-        self.items_getter = self.__items_getter
-        self.__items = items
-        self.__id = widget_id
-
-        next_button_text = Case(
-            {"empty": Const("Любой, далее"), "selected": Const("Далее")},
-            selector=self.__selector,
-        )
-        self.__next_button = Next(next_button_text)
-
-    def __items_getter(self, data: dict):
-        related_data_selector = data["dialog_data"].get(self.__related_select_id)
+        related_data_selector = data["dialog_data"].get(self.__related_widget_id)
         return self.__items[related_data_selector]
 
-    async def render_keyboard(
-        self,
-        data: dict,
-        manager: DialogManager,
-    ) -> list[list[InlineKeyboardButton]]:
-        keyboard = await super().render_keyboard(data, manager)
-        keyboard += await self.__next_button.render_keyboard(data, manager)
-        return keyboard
 
-    def __selector(self, data: dict, case: Case, manager: DialogManager):
-        if data.get(self.__id):
-            return "selected"
-        else:
-            return "empty"
 
-    async def _process_other_callback(
-        self,
-        c,
-        dialog,
-        manager,
+class SelectWithExclude(Select):
+    def __init__(
+            self, text: Text,
+            id: str,
+            item_id_getter,
+            items,
+            exclude_selected_by_id: str | None = None,
+            on_click=None,
+            when=None
     ):
-        if await self.__next_button.process_callback(c, dialog, manager):
-            return True
-        return False
+        super().__init__(text,
+                         id,
+                         item_id_getter,
+                         items,
+                         on_click,
+                         when)
+
+        self.items_getter = self.__items_getter
+        self.__items = items
+        self.__exclude_selected_by_id = exclude_selected_by_id
+
+    def __items_getter(self, data: dict):
+        exclude_data = data["dialog_data"].get(self.__exclude_selected_by_id, None)
+        return (item for item in self.__items if item != exclude_data)

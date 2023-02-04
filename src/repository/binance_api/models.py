@@ -1,10 +1,14 @@
-from enum import auto
+from enum import auto, Enum
 from typing import Literal
 
-from fastapi_utils.enums import StrEnum
 from humps import camel  # type: ignore
 from pydantic import (BaseModel, Field, NonNegativeFloat, NonNegativeInt,
                       PositiveInt, validator)
+
+
+class StrEnum(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
 
 
 class Country(StrEnum):
@@ -41,28 +45,28 @@ class RubPayment(PaymentBase):
     QIWI = auto()
     ABank = auto()
     Payeer = auto()
-    MTSBank = auto()
-    BCSBank = auto()
-    Advcash = auto()
-    AkBarsBank = auto()
+    # MTSBank = auto()
+    # BCSBank = auto()
+    # Advcash = auto()
+    # AkBarsBank = auto()
     TinkoffNew = auto()
-    RosBankNew = auto()
-    UralsibBank = auto()
+    # RosBankNew = auto()
+    # UralsibBank = auto()
     PostBankNew = auto()
-    Mobiletopup = auto()
-    CashInPerson = auto()
-    OTPBankRussia = auto()
-    CitibankRussia = auto()
+    # Mobiletopup = auto()
+    # CashInPerson = auto()
+    # OTPBankRussia = auto()
+    # CitibankRussia = auto()
     RaiffeisenBank = auto()
-    YandexMoneyNew = auto()
-    HomeCreditBank = auto()
-    RUBfiatbalance = auto()
-    UniCreditRussia = auto()
-    CreditEuropeBank = auto()
-    RenaissanceCredit = auto()
-    RaiffeisenBankAval = auto()
-    RussianStandardBank = auto()
-    BankSaintPetersburg = auto()
+    # YandexMoneyNew = auto()
+    # HomeCreditBank = auto()
+    # RUBfiatbalance = auto()
+    # UniCreditRussia = auto()
+    # CreditEuropeBank = auto()
+    # RenaissanceCredit = auto()
+    # RaiffeisenBankAval = auto()
+    # RussianStandardBank = auto()
+    # BankSaintPetersburg = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
@@ -72,14 +76,14 @@ class RubPayment(PaymentBase):
 
 
 class KztPayment(PaymentBase):
-    QIWI = auto()
-    BANK = auto()
+    # QIWI = auto()
+    # BANK = auto()
     KaspiBank = auto()
     HalykBank = auto()
     ForteBank = auto()
     JysanBank = auto()
-    Mobiletopup = auto()
-    CenterCreditBank = auto()
+    # Mobiletopup = auto()
+    # CenterCreditBank = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
@@ -90,7 +94,7 @@ class KztPayment(PaymentBase):
 
 class TryPayment(PaymentBase):
     Ziraat = auto()
-    BANK = auto()
+    # BANK = auto()
     QNB = auto()
 
     @classmethod
@@ -103,7 +107,7 @@ class TryPayment(PaymentBase):
 class GelPayment(PaymentBase):
     BankofGeorgia = auto()
     LIBERTYBANK = auto()
-    TBCbank = auto()
+    # TBCbank = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
