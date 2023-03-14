@@ -1,26 +1,23 @@
 from collections import defaultdict
-from enum import Enum, EnumType
-from typing import Any, Callable
+from enum import EnumType, Enum
 from functools import partial
+from typing import Any, Callable
 
-from emoji import emojize
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ParseMode, CallbackQuery
 from aiogram_dialog import Dialog, DialogManager, Window
-from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi, Text, Case
-from aiogram_dialog.widgets.kbd import Select, Multiselect, Group, Next
-from aiogram_dialog.widgets.when import Whenable
+from aiogram_dialog.widgets.kbd import Group, Next, Column
+from aiogram_dialog.widgets.text import Const, Format, Jinja, Multi, Case
+from emoji import emojize
 
 from src.domain.fiat import FiatFixedCryptoFilter, FiatParams
-from src.interfaces.aiogram.models import (PAYMENTS_CASE, CryptoCurrency,
-                                           FiatCurrency, Payment)
-from src.interfaces.aiogram.widgets import (RelatedMultiselect, SelectWithExclude)
+from src.interfaces.aiogram.exchange.models import (PAYMENTS_CASE, CRYPTO_CURRENCIES, FIAT_CURRENCIES)
+from src.interfaces.aiogram.exchange.widgets import (RelatedMultiselect, SelectWithExclude)
 from src.interfaces.fastapi.container import (AsyncClient,
                                               CachedP2PBinanceRepo,
                                               FiatFixedCryptoExchangerService,
                                               P2PBinanceApi,
                                               P2PExchangerService)
-
 
 client = AsyncClient()
 exchanger_service = FiatFixedCryptoExchangerService(
@@ -44,12 +41,42 @@ async def save_on_click(
     await manager.dialog().next()
 
 
-def build_enum_select_widget(enum: EnumType, widget_id: str, exclude_selected_by_id: str | None = None):
+# def build_enum_select_widget(items: list[Enum], widget_id: str, exclude_selected_by_id: str | None = None,
+#                              max_columns: int | None = None):
+#     if max_columns:
+#         if len(items) > max_columns:
+#             rows = []
+#             items_slises = [items[i:i + max_columns] for i in range(0, len(items), max_columns)]
+#             for slise in items_slises:
+#                 row_select = build_enum_select_widget(slise, widget_id, exclude_selected_by_id, None)
+#                 rows.append(row_select)
+#             return Group(*rows)
+#     return SelectWithExclude(
+#         Format("{item}"),
+#         id=widget_id,
+#         item_id_getter=str,
+#         items=items,
+#         exclude_selected_by_id=exclude_selected_by_id,
+#         on_click=save_on_click
+#     )
+def build_dict_select_widget(items_map: dict, widget_id: str, exclude_selected_by_id: str | None = None,
+                             max_columns: int | None = None):
+    items = list(items_map)
+    if max_columns:
+        if len(items) > max_columns:
+            rows = []
+            items_slises = [items[i:i + max_columns] for i in range(0, len(items), max_columns)]
+            for slise in items_slises:
+                slise_dict = {key: items_map[key] for key in slise}
+                row_select = build_dict_select_widget(slise_dict, widget_id, exclude_selected_by_id, None)
+                rows.append(row_select)
+            return Group(*rows)
+    inverse_items_map = {v: k for k, v in items_map.items()}
     return SelectWithExclude(
         Format("{item}"),
         id=widget_id,
-        item_id_getter=str,
-        items=list(enum),
+        item_id_getter=inverse_items_map.get,
+        items=items_map,
         exclude_selected_by_id=exclude_selected_by_id,
         on_click=save_on_click
     )
@@ -103,7 +130,7 @@ async def get_result(recover_data: Callable, dialog_manager: DialogManager, **kw
                     payments=set(backend_data["target_payments"]),
                 )
             ),
-            intermediate_crypto=CryptoCurrency.USDT.value,
+            intermediate_crypto="USDT",
         )
     )
     fiat_order = await exchanger_service.find_best_price(filter)
@@ -143,10 +170,11 @@ def recover_payments(data: dict):
 
 
 
-source_currency_widget = build_enum_select_widget(FiatCurrency, "source_currency")
+source_currency_widget = build_dict_select_widget(FIAT_CURRENCIES, "source_currency", max_columns=4)
 source_payments_widget = build_related_payments_widget("source_currency", PAYMENTS_CASE, "source_payments")
-target_currency_widget = build_enum_select_widget(FiatCurrency, "target_currency",
-                                                  exclude_selected_by_id="source_currency")
+target_currency_widget = build_dict_select_widget(FIAT_CURRENCIES, "target_currency",
+                                                  exclude_selected_by_id="source_currency",
+                                                  max_columns=4)
 target_payments_widget = build_related_payments_widget("target_currency", PAYMENTS_CASE, "target_payments")
 dialog_template = Jinja(
     """
@@ -175,7 +203,6 @@ crypto_dialog = Dialog(
         Multi(
             dialog_template,
             Format("Выберите способы оплаты для *{source_currency}*"),
-            # dialog_template
         ),
         source_payments_widget,
         state=ExchangerSG.source_payments,
@@ -186,7 +213,6 @@ crypto_dialog = Dialog(
         Multi(
             dialog_template,
             Const(emojize(":down-right_arrow: Выберите целевую валюта")),
-            # dialog_template
         ),
         target_currency_widget,
         state=ExchangerSG.target_currency,
@@ -197,7 +223,6 @@ crypto_dialog = Dialog(
         Multi(
             dialog_template,
             Format("Выберите способ оплаты для {target_currency}"),
-            # dialog_template
         ),
         target_payments_widget,
         state=ExchangerSG.target_payments,
@@ -206,7 +231,6 @@ crypto_dialog = Dialog(
     ),
     Window(
         Multi(
-            # dialog_template,
             Format("Курс обмена: *{price:.2f}*"),
             dialog_template,
             Format(

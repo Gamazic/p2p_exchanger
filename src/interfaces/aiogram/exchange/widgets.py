@@ -1,4 +1,4 @@
-from typing import Callable, Iterable
+from typing import Callable
 
 from aiogram_dialog.widgets.kbd import Multiselect, Select
 from aiogram_dialog.widgets.text import Text
@@ -16,7 +16,8 @@ class RelatedMultiselect(Multiselect):
     ):
         super().__init__(checked_text, unchecked_text, id,
                          item_id_getter, items,
-                         min_selected=min_selected, max_selected=max_selected,
+                         min_selected=min_selected,
+                         max_selected=max_selected,
                          on_click=on_click,
                          on_state_changed=on_state_changed,
                          when=when)
@@ -36,22 +37,21 @@ class SelectWithExclude(Select):
             self, text: Text,
             id: str,
             item_id_getter,
-            items,
+            items: dict,
             exclude_selected_by_id: str | None = None,
             on_click=None,
             when=None
     ):
-        super().__init__(text,
-                         id,
-                         item_id_getter,
-                         items,
-                         on_click,
-                         when)
+        super().__init__(text, id, item_id_getter,
+                         list(items),
+                         on_click=on_click,
+                         when=when)
 
         self.items_getter = self.__items_getter
         self.__items = items
+        self.__inverse_items = {v: k for k, v in items.items()}
         self.__exclude_selected_by_id = exclude_selected_by_id
 
     def __items_getter(self, data: dict):
         exclude_data = data["dialog_data"].get(self.__exclude_selected_by_id, None)
-        return (item for item in self.__items if item != exclude_data)
+        return (self.__items[item] for item in self.__items if item != exclude_data)

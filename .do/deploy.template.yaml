@@ -1,8 +1,0 @@
-spec:
-  name: p2p_exchanger_backend
-  services:
-  - environment_slug: python
-    git:
-      branch: main
-      repo_clone_url: https://github.com/Gamazic/p2p_exchanger_backend.git
-    name: p2p_exchanger_backend-python

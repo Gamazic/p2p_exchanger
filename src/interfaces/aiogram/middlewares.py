@@ -33,7 +33,8 @@ class CustomLoggingMiddleware(BaseMiddleware):
         return (
             f"MESSAGE [{message.message_id}], "
             f"CHAT [{message.chat.type}:{message.chat.id}], "
-            f"USER [{message.from_user.id}]"
+            f"USER ID [{message.from_user.id}], "
+            f"USERNAME [{message.from_user.username}], "
         )
 
     def __check_timeout(self, obj):

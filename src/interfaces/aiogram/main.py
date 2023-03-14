@@ -1,3 +1,5 @@
+import sys
+import logging
 from functools import partial
 
 import typer
@@ -5,10 +7,16 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram_dialog import DialogRegistry
 
-from src.interfaces.aiogram.config import AppSettings, BotWebhookSettings
-from src.interfaces.aiogram.dialog import crypto_dialog
-from src.interfaces.aiogram.handlers import exchange, help, start
+from src.interfaces.aiogram.config import TG_TOKEN, BotWebhookSettings
+from src.interfaces.aiogram.exchange.dialog import crypto_dialog
+from src.interfaces.aiogram.exchange.handlers import exchange
+from src.interfaces.aiogram.handlers import help, start
 from src.interfaces.aiogram.middlewares import CustomLoggingMiddleware
+
+
+logger = logging.getLogger("bot")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def start_polling():
@@ -33,7 +41,7 @@ def start_webhook():
 
 
 def configure_bot():
-    bot = Bot(token=AppSettings().TG_TOKEN)
+    bot = Bot(token=TG_TOKEN)
     return bot
 
 

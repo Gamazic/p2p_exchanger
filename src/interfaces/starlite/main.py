@@ -1,4 +1,4 @@
-from starlite import Provide, Starlite
+from starlite import Provide, Starlite, OpenAPIConfig
 from starlite.status_codes import HTTP_500_INTERNAL_SERVER_ERROR
 
 from src.interfaces.starlite.container import get_exchanger
@@ -16,6 +16,7 @@ app = Starlite(
     middleware=[logging_middleware_config.middleware],
     exception_handlers={HTTP_500_INTERNAL_SERVER_ERROR: logging_exception_handler},
     debug=False,
+    openapi_config=OpenAPIConfig(title="P2P Exchanger Backend", version="0.0.1",root_schema_site="swagger")
 )
 
 if __name__ == "__main__":

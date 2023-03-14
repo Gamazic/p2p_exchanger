@@ -11,6 +11,4 @@ class BotWebhookSettings(BaseSettings):
     WEBAPP_HOST: str
 
 
-class AppSettings(BaseSettings):
-    TG_TOKEN: str
-    EXCHANGER_API_URL: str
+TG_TOKEN = os.environ["TG_TOKEN"]
