@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "p2p_exchanger_backend"
-version = "0.1.0"
-description = ""
-authors = ["NABurov <naburov@greenatom.ru>"]
+name = "p2p_exchanger"
+version = "0.2.0"
+description = "Backend service and bot for p2p crypto exchange"
+authors = ["Gamazic <Nikita.nov.ru@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -38,3 +38,13 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+
+[tool.coverage.run]
+omit = ["*/tests/*"]
+
+[tool.mypy]
+exclude = [".venv"]

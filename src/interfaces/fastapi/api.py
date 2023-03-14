@@ -4,9 +4,11 @@ from pydantic import NonNegativeFloat
 from src.domain.fiat import FiatAnyCryptoFilter, FiatParams
 from src.interfaces.fastapi.container import fiat_any_crypto_exchanger
 from src.interfaces.fastapi.schemas import ExchangeRateInResponse
-from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
-                                               FiatCurrency)
+from src.repository.binance_api.models import AnyPayment, CryptoCurrency, FiatCurrency
 from src.services.exchangers import FiatAnyCryptoExchangerService
+
+__all__ = ["get_best_exchange_rate"]
+
 
 api = APIRouter()
 
@@ -19,9 +21,7 @@ async def get_best_exchange_rate(
     min_amount: NonNegativeFloat = Query(0),
     source_payments: list[AnyPayment] = Query([]),
     target_payments: list[AnyPayment] = Query([]),
-    exchanger_service: FiatAnyCryptoExchangerService = Depends(
-        fiat_any_crypto_exchanger
-    ),
+    exchanger_service: FiatAnyCryptoExchangerService = Depends(fiat_any_crypto_exchanger),
 ):
     filter = FiatAnyCryptoFilter(
         source_params=FiatParams(
@@ -29,9 +29,7 @@ async def get_best_exchange_rate(
             min_amount=min_amount,
             payments=frozenset(source_payments),
         ),
-        target_params=FiatParams(
-            currency=target_currency, min_amount=0, payments=frozenset(target_payments)
-        ),
+        target_params=FiatParams(currency=target_currency, min_amount=0, payments=frozenset(target_payments)),
         intermediate_cryptos=intermediate_cryptos,
     )
     fiat_order = await exchanger_service.find_best_price(filter)

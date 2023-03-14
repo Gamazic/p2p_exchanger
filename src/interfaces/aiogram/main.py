@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 from functools import partial
 
 import typer
@@ -12,6 +12,8 @@ from src.interfaces.aiogram.exchange.dialog import crypto_dialog
 from src.interfaces.aiogram.exchange.handlers import exchange
 from src.interfaces.aiogram.handlers import help, start
 from src.interfaces.aiogram.middlewares import CustomLoggingMiddleware
+
+__all__ = ["configure_bot", "configure_dp", "on_webhook_startup", "register_handlers", "start_polling", "start_webhook"]
 
 
 logger = logging.getLogger("bot")

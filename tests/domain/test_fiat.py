@@ -1,15 +1,23 @@
 from datetime import datetime
 
 import pytest
-
-from src.domain.fiat import (BadP2POrderTypeError, DifferentP2PCryptoError,
-                             FiatFixedCryptoFilter, FiatOrder, FiatParams,
-                             SameFiatCurrencyError)
+from src.domain.fiat import (
+    BadP2POrderTypeError,
+    DifferentP2PCryptoError,
+    FiatFixedCryptoFilter,
+    FiatOrder,
+    FiatParams,
+    SameFiatCurrencyError,
+)
 from src.domain.p2p import P2POrder
-from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               KztPayment, P2PTradeType,
-                                               PaymentDoesntMatchCurrencyError,
-                                               RubPayment)
+from src.repository.binance_api.models import (
+    CryptoCurrency,
+    FiatCurrency,
+    KztPayment,
+    P2PTradeType,
+    PaymentDoesntMatchCurrencyError,
+    RubPayment,
+)
 
 
 class TestFiatParams:
@@ -50,24 +58,16 @@ class TestFiatParams:
 class TestFiatFixedCryptoFilter:
     def test_correct(self):
         FiatFixedCryptoFilter(
-            source_params=FiatParams(
-                currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
-            ),
-            target_params=FiatParams(
-                currency=FiatCurrency.KZT, min_amount=0, payments=frozenset([])
-            ),
+            source_params=FiatParams(currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])),
+            target_params=FiatParams(currency=FiatCurrency.KZT, min_amount=0, payments=frozenset([])),
             intermediate_crypto=CryptoCurrency.USDT,
         )
 
     def test_same_currency(self):
         with pytest.raises(SameFiatCurrencyError):
             FiatFixedCryptoFilter(
-                source_params=FiatParams(
-                    currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
-                ),
-                target_params=FiatParams(
-                    currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])
-                ),
+                source_params=FiatParams(currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])),
+                target_params=FiatParams(currency=FiatCurrency.RUB, min_amount=0, payments=frozenset([])),
                 intermediate_crypto=CryptoCurrency.USDT,
             )
 

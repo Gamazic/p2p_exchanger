@@ -12,7 +12,17 @@ services:
     container_name: fastapi-backend
     security_opt:
       - no-new-privileges:true
-    command: ["uvicorn", "--factory", "src.interfaces.fastapi.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command:
+      [
+        "uvicorn",
+        "--factory",
+        "src.interfaces.fastapi.main:create_app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
     ports:
       - 8000:8000
     restart: always

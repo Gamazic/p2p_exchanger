@@ -2,21 +2,24 @@ from copy import deepcopy
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-
-from src.repository.binance_api.models import (AdvertiserSearchApi,
-                                               AdvSearchApi, CryptoCurrency,
-                                               FiatCurrency, P2POrderSearchApi,
-                                               P2PTradeType, RubPayment,
-                                               SearchApiParams,
-                                               SearchApiResponse, TradeMethod)
+from src.repository.binance_api.models import (
+    AdvertiserSearchApi,
+    AdvSearchApi,
+    CryptoCurrency,
+    FiatCurrency,
+    P2POrderSearchApi,
+    P2PTradeType,
+    RubPayment,
+    SearchApiParams,
+    SearchApiResponse,
+    TradeMethod,
+)
 
 EXAMPLE_RAW_SEARCH_API_PARAMS = {
-    # "proMerchantAds": False,
     "page": 1,
     "rows": 10,
     "payTypes": ["TinkoffNew"],
     "countries": [],
-    # "publisherType": None,
     "asset": "USDT",
     "fiat": "RUB",
     "tradeType": "BUY",
@@ -35,9 +38,7 @@ EXAMPLE_SEARCH_API_ARG = SearchApiParams(
     trade_type=P2PTradeType.BUY,
     trans_amount=0.0,
 )
-EXAMPLE_2_SEARCH_API_ARG = SearchApiParams(
-    **EXAMPLE_SEARCH_API_ARG.dict(exclude={"asset"}), asset=CryptoCurrency.BTC
-)
+EXAMPLE_2_SEARCH_API_ARG = SearchApiParams(**EXAMPLE_SEARCH_API_ARG.dict(exclude={"asset"}), asset=CryptoCurrency.BTC)
 
 
 class TestSearchApiParams:
@@ -91,8 +92,8 @@ EXAMPLE_RAW_SEARCH_API_RESPONSE = {
                         "paySubBank": None,
                         "identifier": "TinkoffNew",
                         "iconUrlColor": None,
-                        "tradeMethodName": "Тинькофф",
-                        "tradeMethodShortName": "Тинькофф",
+                        "tradeMethodName": "Tинькoфф",
+                        "tradeMethodShortName": "Tинькoфф",
                         "tradeMethodBgColor": "#DAB700",
                     }
                 ],
@@ -203,8 +204,8 @@ EXAMPLE_RAW_SEARCH_API_RESPONSE_UNSEEN_PAYMENT = {
                         "paySubBank": None,
                         "identifier": "IDK",
                         "iconUrlColor": None,
-                        "tradeMethodName": "Тинькофф",
-                        "tradeMethodShortName": "Тинькофф",
+                        "tradeMethodName": "Tинькoфф",
+                        "tradeMethodShortName": "Tинькoфф",
                         "tradeMethodBgColor": "#DAB700",
                     }
                 ],
@@ -316,6 +317,4 @@ class TestSearchApiResponse:
         assert expected == parsed_search_api
 
     def test_unseen_payment(self):
-        parsed_search_api = SearchApiResponse.parse_obj(
-            EXAMPLE_RAW_SEARCH_API_RESPONSE_UNSEEN_PAYMENT
-        )
+        SearchApiResponse.parse_obj(EXAMPLE_RAW_SEARCH_API_RESPONSE_UNSEEN_PAYMENT)

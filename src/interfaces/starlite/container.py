@@ -5,9 +5,9 @@ from httpx import AsyncClient
 from src.interfaces.starlite.logger import log_request, log_response
 from src.repository.binance_api.p2p_api import P2PBinanceApi
 from src.repository.p2p_binance_repo import CachedP2PBinanceRepo
-from src.services.exchangers import (FiatAnyCryptoExchangerService,
-                                     FiatFixedCryptoExchangerService,
-                                     P2PExchangerService)
+from src.services.exchangers import FiatAnyCryptoExchangerService, FiatFixedCryptoExchangerService, P2PExchangerService
+
+__all__ = ["get_exchanger"]
 
 
 @cache
