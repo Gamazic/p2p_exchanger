@@ -3,9 +3,10 @@ from starlite import Controller, Dependency, Parameter, get
 
 from src.domain.fiat import FiatAnyCryptoFilter, FiatParams
 from src.interfaces.starlite.models import ExchangeRateInResponse
-from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
-                                               FiatCurrency)
+from src.repository.binance_api.models import AnyPayment, CryptoCurrency, FiatCurrency
 from src.services.exchangers import FiatAnyCryptoExchangerService
+
+__all__ = ["ExchangeRateController"]
 
 
 class ExchangeRateController(Controller):

@@ -1,8 +1,0 @@
-name: p2p_exchanger_backend
-services:
-- environment_slug: python
-  github:
-    branch: main
-    deploy_on_push: true
-    repo: Gamazic/p2p_exchanger_backend
-  name: p2p_exchanger_backend

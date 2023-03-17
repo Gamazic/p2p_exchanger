@@ -1,8 +1,7 @@
 import pytest
 from httpx import AsyncClient, Request, Response
+from src.repository.binance_api.p2p_api import P2PBinanceApi, P2PBinanceApiError
 
-from src.repository.binance_api.p2p_api import (P2PBinanceApi,
-                                                P2PBinanceApiError)
 from tests.repository.test_models import EXAMPLE_SEARCH_API_ARG
 
 
@@ -13,8 +12,8 @@ class TestP2PBinanceApi:
             yield client
 
     async def test_search_api(self, client):
-        # TODO возможно интеграционные тесты стоит перенести
-        # отдельный модуль.
+        # TODO вoзмoжнo интerpaциoнныe тecты cтoит пepeнecти
+        # oтдeльный мoдyль.
         p2p_api = P2PBinanceApi(client)
         response = await p2p_api.search(EXAMPLE_SEARCH_API_ARG)
         assert response.success is True
@@ -23,9 +22,7 @@ class TestP2PBinanceApi:
     def client_not_connected_stub(self):
         class ClientStub:
             async def post(self, *args, **kwargs):
-                return Response(
-                    status_code=404, request=Request("POST", "https://test.ru")
-                )
+                return Response(status_code=404, request=Request("POST", "https://test.ru"))
 
         return ClientStub()
 

@@ -1,8 +1,18 @@
 from pydantic import BaseModel, NonNegativeFloat, root_validator, validator
 
 from src.domain.p2p import P2POrder
-from src.repository.binance_api.models import (AnyPayment, CryptoCurrency,
-                                               FiatCurrency, P2PTradeType)
+from src.repository.binance_api.models import AnyPayment, CryptoCurrency, FiatCurrency, P2PTradeType
+
+__all__ = [
+    "BadP2POrderTypeError",
+    "DifferentP2PCryptoError",
+    "FiatAnyCryptoFilter",
+    "FiatBundle",
+    "FiatFixedCryptoFilter",
+    "FiatOrder",
+    "FiatParams",
+    "SameFiatCurrencyError",
+]
 
 
 class SameFiatCurrencyError(Exception):
@@ -16,7 +26,7 @@ class FiatParams(BaseModel):
 
     @root_validator
     def check_payments_match_currency(cls, values):
-        for payment in values["payments"]:
+        for payment in values.get("payments"):
             payment.validate_currency(values["currency"])
         return values
 
@@ -31,15 +41,13 @@ class FiatBundle(BaseModel):
         target_currency = values["target_params"].currency
         if source_currency is target_currency:
             raise SameFiatCurrencyError(
-                f"Expected different source and target currencies."
-                f"Got {source_currency=}, {target_currency=}"
+                f"Expected different source and target currencies." f"Got {source_currency=}, {target_currency=}"
             )
         return values
 
     # TODO Does it need any validation of source and target min amount?
     # @root_validator
     # def check_source_target_min_amount(cls, values):
-    #     return values
 
 
 class FiatFixedCryptoFilter(FiatBundle):
@@ -66,17 +74,13 @@ class FiatOrder(BaseModel):
     @validator("source_order")
     def check_source_order_is_buy(cls, v):
         if v.trade_type is not P2PTradeType.BUY:
-            raise BadP2POrderTypeError(
-                f"Expected source trade type is BUY, got {v.trade_type}"
-            )
+            raise BadP2POrderTypeError(f"Expected source trade type is BUY, got {v.trade_type}")
         return v
 
     @validator("target_order")
     def check_target_order_is_sell(cls, v):
         if v.trade_type is not P2PTradeType.SELL:
-            raise BadP2POrderTypeError(
-                f"Expected source trade type is SELL, got {v.trade_type}"
-            )
+            raise BadP2POrderTypeError(f"Expected source trade type is SELL, got {v.trade_type}")
         return v
 
     @root_validator
@@ -95,8 +99,5 @@ class FiatOrder(BaseModel):
         source_crypto = values["source_order"].target_currency
         target_crypto = values["target_order"].source_currency
         if source_crypto is not target_crypto:
-            raise DifferentP2PCryptoError(
-                f"Expected same crypto currency,"
-                f"got f{source_crypto=}, {target_crypto=}"
-            )
+            raise DifferentP2PCryptoError(f"Expected same crypto currency," f"got f{source_crypto=}, {target_crypto=}")
         return values

@@ -1,8 +1,9 @@
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient, codes
 
-from src.repository.binance_api.models import (SearchApiParams,
-                                               SearchApiResponse)
+from src.repository.binance_api.models import SearchApiParams, SearchApiResponse
+
+__all__ = ["P2PBinanceApi", "P2PBinanceApiError"]
 
 
 class P2PBinanceApiError(Exception):

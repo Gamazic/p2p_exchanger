@@ -2,8 +2,10 @@ import os
 
 from pydantic import AnyHttpUrl, BaseSettings, PositiveInt
 
+__all__ = ["BotWebhookSettings"]
 
-class BotWebhookConfig(BaseSettings):
+
+class BotWebhookSettings(BaseSettings):
     WEBHOOK_HOST: AnyHttpUrl
     WEBHOOK_PATH: str
 
@@ -11,4 +13,4 @@ class BotWebhookConfig(BaseSettings):
     WEBAPP_HOST: str
 
 
-TG_TOKEN = os.environ.get("TG_TOKEN")
+TG_TOKEN = os.environ["TG_TOKEN"]

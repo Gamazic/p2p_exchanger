@@ -1,10 +1,39 @@
-from enum import auto
+from enum import Enum, auto
 from typing import Literal
 
-from fastapi_utils.enums import StrEnum
 from humps import camel  # type: ignore
-from pydantic import (BaseModel, Field, NonNegativeFloat, NonNegativeInt,
-                      PositiveInt, validator)
+from pydantic import BaseModel, Field, NonNegativeFloat, NonNegativeInt, PositiveInt, validator
+
+__all__ = [
+    "AdvSearchApi",
+    "AdvertiserSearchApi",
+    "AedPayment",
+    "CamelModel",
+    "CnyPayment",
+    "Country",
+    "CryptoCurrency",
+    "EurPayment",
+    "FiatCurrency",
+    "GelPayment",
+    "KztPayment",
+    "NonRegisteredPayment",
+    "P2POrderSearchApi",
+    "P2PTradeType",
+    "PaymentBase",
+    "PaymentDoesntMatchCurrencyError",
+    "RubPayment",
+    "SearchApiParams",
+    "SearchApiResponse",
+    "StrEnum",
+    "TradeMethod",
+    "TryPayment",
+    "UsdPayment",
+]
+
+
+class StrEnum(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name
 
 
 class Country(StrEnum):
@@ -12,10 +41,14 @@ class Country(StrEnum):
 
 
 class FiatCurrency(StrEnum):
-    KZT = auto()
     RUB = auto()
-    TRY = auto()
-    GEL = auto()
+    KZT = auto()  # Kazakh
+    TRY = auto()  # Turkish
+    GEL = auto()  # Georgian
+    EUR = auto()
+    USD = auto()
+    AED = auto()  # Emirates
+    CNY = auto()  # Chinese
 
 
 class CryptoCurrency(StrEnum):
@@ -41,75 +74,93 @@ class RubPayment(PaymentBase):
     QIWI = auto()
     ABank = auto()
     Payeer = auto()
-    MTSBank = auto()
-    BCSBank = auto()
-    Advcash = auto()
-    AkBarsBank = auto()
     TinkoffNew = auto()
     RosBankNew = auto()
-    UralsibBank = auto()
     PostBankNew = auto()
-    Mobiletopup = auto()
-    CashInPerson = auto()
-    OTPBankRussia = auto()
-    CitibankRussia = auto()
     RaiffeisenBank = auto()
-    YandexMoneyNew = auto()
-    HomeCreditBank = auto()
-    RUBfiatbalance = auto()
-    UniCreditRussia = auto()
-    CreditEuropeBank = auto()
-    RenaissanceCredit = auto()
-    RaiffeisenBankAval = auto()
-    RussianStandardBank = auto()
-    BankSaintPetersburg = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.RUB:
-            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.RUB} doesn't match"
-                                                  f"{currency} currency")
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.RUB} doesn't match" f"{currency} currency")
 
 
 class KztPayment(PaymentBase):
-    QIWI = auto()
-    BANK = auto()
     KaspiBank = auto()
     HalykBank = auto()
     ForteBank = auto()
     JysanBank = auto()
-    Mobiletopup = auto()
-    CenterCreditBank = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.KZT:
-            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.KZT} doesn't match"
-                                                  f"{currency} currency")
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.KZT} doesn't match" f"{currency} currency")
 
 
 class TryPayment(PaymentBase):
     Ziraat = auto()
-    BANK = auto()
     QNB = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.TRY:
-            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.TRY} doesn't match"
-                                                  f"{currency} currency")
+            raise PaymentDoesntMatchCurrencyError(f"Payment {FiatCurrency.TRY} doesn't match" f"{currency} currency")
 
 
 class GelPayment(PaymentBase):
     BankofGeorgia = auto()
     LIBERTYBANK = auto()
-    TBCbank = auto()
 
     @classmethod
     def validate_currency(cls, currency: FiatCurrency):
         if currency is not FiatCurrency.GEL:
-            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match"
-                                                  f" {FiatCurrency.GEL} payments")
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match" f" {FiatCurrency.GEL} payments")
+
+
+class EurPayment(PaymentBase):
+    Zen = auto()
+    Wise = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.EUR:
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match" f" {FiatCurrency.EUR} payments")
+
+
+class UsdPayment(PaymentBase):
+    AirTM = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.USD:
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match" f" {FiatCurrency.USD} payments")
+
+
+class AedPayment(PaymentBase):
+    ADCB = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.AED:
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match" f" {FiatCurrency.AED} payments")
+
+
+# class JpyPayment(PaymentBase):
+#
+#     @classmethod
+#     def validate_currency(cls, currency: FiatCurrency):
+#         if currency is not FiatCurrency.JPY:
+#             raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match"
+#                                                   f" {FiatCurrency.JPY} payments")
+
+
+class CnyPayment(PaymentBase):
+    Alipay = auto()
+
+    @classmethod
+    def validate_currency(cls, currency: FiatCurrency):
+        if currency is not FiatCurrency.CNY:
+            raise PaymentDoesntMatchCurrencyError(f"Currency {currency} doesn't match" f" {FiatCurrency.CNY} payments")
 
 
 class NonRegisteredPayment(PaymentBase):
@@ -120,8 +171,8 @@ class NonRegisteredPayment(PaymentBase):
         return
 
 
-AnyPayment = RubPayment | KztPayment | TryPayment | GelPayment
-AnyPaymentWithNotRegistered = RubPayment | KztPayment | TryPayment | GelPayment | NonRegisteredPayment
+AnyPayment = RubPayment | KztPayment | TryPayment | GelPayment | EurPayment | UsdPayment | AedPayment | CnyPayment
+AnyPaymentWithNotRegistered = AnyPayment | NonRegisteredPayment
 
 
 class P2PTradeType(StrEnum):
@@ -174,7 +225,7 @@ class AdvertiserSearchApi(CamelModel):
     month_order_count: NonNegativeInt
     user_grade: NonNegativeInt | None  # Only once it was None
     user_type: Literal["user", "merchant"] | None  # Only once it was None
-    user_identity: Literal["MASS_MERCHANT", ""] | None  # Only once it was None
+    user_identity: Literal["MASS_MERCHANT", "BLOCK_MERCHANT", ""] | None  # Only once it was None
 
 
 class P2POrderSearchApi(CamelModel):

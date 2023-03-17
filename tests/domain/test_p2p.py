@@ -1,13 +1,15 @@
 from datetime import datetime
 
 import pytest
-
-from src.domain.p2p import (P2PFilter, P2POrder, P2PSameCurrencyTypeError,
-                            P2PTradeTypeError)
-from src.repository.binance_api.models import (CryptoCurrency, FiatCurrency,
-                                               KztPayment, P2PTradeType,
-                                               PaymentDoesntMatchCurrencyError,
-                                               RubPayment)
+from src.domain.p2p import P2PFilter, P2POrder, P2PSameCurrencyTypeError, P2PTradeTypeError
+from src.repository.binance_api.models import (
+    CryptoCurrency,
+    FiatCurrency,
+    KztPayment,
+    P2PTradeType,
+    PaymentDoesntMatchCurrencyError,
+    RubPayment,
+)
 
 
 class TestP2POrder:

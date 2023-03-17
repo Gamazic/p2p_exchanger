@@ -1,8 +1,7 @@
 version: "3.8"
 
 x-common-service: &image-service
-  image: registry.digitalocean.com/exchanger-registry/exchanger_core:latest
-  user: app-user
+  build: .
   env_file:
     - .env
 
@@ -10,9 +9,15 @@ services:
   fastapi-backend:
     <<: *image-service
     container_name: fastapi-backend
-    security_opt:
-      - no-new-privileges:true
-    command: ["uvicorn", "--factory", "src.interfaces.fastapi.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command:
+      [
+        "uvicorn",
+        "src.interfaces.starlite.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+      ]
     ports:
       - 8000:8000
     restart: always

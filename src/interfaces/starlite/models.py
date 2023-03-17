@@ -2,8 +2,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, NonNegativeFloat
 
-from src.repository.binance_api.models import (AnyPaymentWithNotRegistered,
-                                               CryptoCurrency, FiatCurrency)
+from src.repository.binance_api.models import AnyPaymentWithNotRegistered, CryptoCurrency, FiatCurrency
+
+__all__ = ["ExchangeRateInResponse"]
 
 
 class ExchangeRateInResponse(BaseModel):

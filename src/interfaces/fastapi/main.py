@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from src.interfaces.fastapi.api import api
 
+__all__ = ["create_app"]
+
 
 def create_app() -> FastAPI:
     application = FastAPI()

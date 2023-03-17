@@ -1,11 +1,12 @@
 import asyncio
 from typing import Protocol
 
-from src.domain.fiat import (FiatAnyCryptoFilter, FiatFixedCryptoFilter,
-                             FiatOrder)
+from src.domain.fiat import FiatAnyCryptoFilter, FiatFixedCryptoFilter, FiatOrder
 from src.domain.p2p import P2PFilter, P2POrder
 from src.repository.binance_api.models import CryptoCurrency
 from src.repository.p2p_binance_repo import P2PRepoProto
+
+__all__ = ["FiatAnyCryptoExchangerService", "FiatFixedCryptoExchangerService", "IExchanger", "P2PExchangerService"]
 
 
 class IExchanger(Protocol):
@@ -19,9 +20,7 @@ class P2PExchangerService(IExchanger):
 
     async def find_best_price(self, filter: P2PFilter) -> P2POrder:
         orders = await self.__p2p_repo.find(filter)
-        return max(
-            orders, key=lambda o: o.price
-        )  # TODO if orders are ordered, than take just first el
+        return max(orders, key=lambda o: o.price)  # TODO if orders are ordered, than take just first el
 
 
 class FiatFixedCryptoExchangerService(IExchanger):
@@ -31,9 +30,7 @@ class FiatFixedCryptoExchangerService(IExchanger):
     async def find_best_price(self, filter: FiatFixedCryptoFilter) -> FiatOrder:
         source_order_coro = self.__get_source_order(filter)
         target_order_coro = self.__get_target_order(filter)
-        source_order, target_order = await asyncio.gather(
-            source_order_coro, target_order_coro
-        )
+        source_order, target_order = await asyncio.gather(source_order_coro, target_order_coro)
         price = target_order.price / source_order.price
         fiat_order = FiatOrder(
             source_order=source_order,
@@ -78,8 +75,6 @@ class FiatAnyCryptoExchangerService(IExchanger):
                 target_params=filter.target_params,
                 intermediate_crypto=crypto,
             )
-            fiat_fixed_crypto_order_coros.append(
-                self.__fiat_exchanger.find_best_price(fiat_fixed_crypto_filter)
-            )
+            fiat_fixed_crypto_order_coros.append(self.__fiat_exchanger.find_best_price(fiat_fixed_crypto_filter))
         orders = await asyncio.gather(*fiat_fixed_crypto_order_coros)
         return orders
